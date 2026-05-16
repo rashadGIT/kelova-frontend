@@ -14,6 +14,14 @@ jest.mock('@/lib/api/dashboard', () => ({
   getRecentCases: jest.fn(),
 }));
 
+jest.mock('@/lib/api/revenue', () => ({
+  getRevenueReport: jest.fn(),
+}));
+
+jest.mock('@/lib/api/client', () => ({
+  apiClient: { get: jest.fn() },
+}));
+
 jest.mock('@/lib/utils/format-date', () => ({
   formatRelative: jest.fn(() => '1 day ago'),
   formatDate: jest.fn(() => 'Jan 1, 2025'),
@@ -26,10 +34,14 @@ jest.mock('sonner', () => ({
 
 import { useRouter } from 'next/navigation';
 import { getDashboardStats, getRecentCases } from '@/lib/api/dashboard';
+import { getRevenueReport } from '@/lib/api/revenue';
+import { apiClient } from '@/lib/api/client';
 import DashboardPage from '@/app/(dashboard)/page';
 
 const mockGetDashboardStats = getDashboardStats as jest.Mock;
 const mockGetRecentCases = getRecentCases as jest.Mock;
+const mockGetRevenueReport = getRevenueReport as jest.Mock;
+const mockApiClientGet = (apiClient.get as jest.Mock);
 
 const mockStats = {
   activeCases: 7,
@@ -69,10 +81,29 @@ function renderWithQuery(ui: React.ReactElement) {
 }
 
 describe('Acceptance: Dashboard page', () => {
+  const mockRevenue = {
+    totalCases: 5,
+    totalRevenue: 25000,
+    averageCaseValue: 5000,
+    pendingBalance: 3000,
+    revenueByServiceType: [
+      { serviceType: 'burial', count: 3, revenue: 15000 },
+      { serviceType: 'cremation', count: 2, revenue: 10000 },
+    ],
+    casesByMonth: [],
+  };
+
+  const mockWorkload = [
+    { id: 'user-1', name: 'Jane Director', role: 'funeral_director', activeCases: 4, overdueTaskCount: 1 },
+    { id: 'user-2', name: 'Bob Staff', role: 'staff', activeCases: 2, overdueTaskCount: 0 },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetDashboardStats.mockResolvedValue(mockStats);
     mockGetRecentCases.mockResolvedValue(mockRecentCases);
+    mockGetRevenueReport.mockResolvedValue(mockRevenue);
+    mockApiClientGet.mockResolvedValue({ data: mockWorkload });
   });
 
   it('renders all 4 stat card titles', async () => {
@@ -90,11 +121,12 @@ describe('Acceptance: Dashboard page', () => {
     renderWithQuery(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('7')).toBeInTheDocument(); // activeCases
+      expect(screen.getByText('7')).toBeInTheDocument(); // activeCases — unique
     });
-    expect(screen.getByText('2')).toBeInTheDocument();   // overdueTasks
-    expect(screen.getByText('4')).toBeInTheDocument();   // casesThisMonth
-    expect(screen.getByText('1')).toBeInTheDocument();   // pendingSignatures
+    // Numbers 1, 2, 4 appear in both stat cards and workload table; just assert presence
+    expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders "Recent Cases" section heading', async () => {
@@ -125,5 +157,43 @@ describe('Acceptance: Dashboard page', () => {
     await user.click(screen.getByText('Martha Green'));
 
     expect(mockPush).toHaveBeenCalledWith('/cases/case-abc');
+  });
+
+  it('renders Revenue by Service Type table rows when data is available', async () => {
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('burial')).toBeInTheDocument();
+    });
+    expect(screen.getByText('cremation')).toBeInTheDocument();
+    expect(screen.getByText('Revenue by Service Type')).toBeInTheDocument();
+  });
+
+  it('renders Total Revenue stat card with average description', async () => {
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Total Revenue (YTD)')).toBeInTheDocument();
+    });
+  });
+
+  it('renders Staff Workload table with member names', async () => {
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Jane Director')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Bob Staff')).toBeInTheDocument();
+    expect(screen.getByText('Staff Workload')).toBeInTheDocument();
+  });
+
+  it('shows overdue task count in red for staff with overdue tasks', async () => {
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => screen.getByText('Jane Director'));
+    // Jane Director has overdueTaskCount=1 — find the span with destructive class
+    const destructiveSpans = document.querySelectorAll('.text-destructive');
+    expect(destructiveSpans.length).toBeGreaterThan(0);
+    expect(destructiveSpans[0].textContent).toBe('1');
   });
 });

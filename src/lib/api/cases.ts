@@ -31,7 +31,13 @@ export async function getCaseById(id: string): Promise<ICase> {
 }
 
 export async function createCase(dto: CreateCaseDto): Promise<ICase> {
-  const res = await apiClient.post<ICase>('/cases', dto);
+  const res = await apiClient.post<ICase>('/cases', {
+    deceasedName: `${dto.deceasedFirstName} ${dto.deceasedLastName}`.trim(),
+    serviceType: dto.serviceType,
+    ...(dto.dateOfBirth && { deceasedDob: dto.dateOfBirth }),
+    ...(dto.dateOfDeath && { deceasedDod: dto.dateOfDeath }),
+    ...(dto.assignedTo && { assignedToId: dto.assignedTo }),
+  });
   return res.data;
 }
 
