@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 
@@ -37,8 +37,11 @@ function AuthCallbackInner() {
   const setUser = useAuthStore((s) => s.setUser);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState('Exchanging authorization code…');
+  const exchanged = useRef(false);
 
   useEffect(() => {
+    if (exchanged.current) return;
+    exchanged.current = true;
     const urlError = searchParams.get('error_description') ?? searchParams.get('error');
     if (urlError) {
       setError(decodeURIComponent(urlError));
@@ -82,19 +85,8 @@ function AuthCallbackInner() {
         const tokens: TokenResponse = await res.json();
         setStatus('Parsing token…');
 
+        // Store tokens so apiClient can send Bearer on the sync call
         const idPayload = parseJwt(tokens.id_token);
-        const given = (idPayload.given_name as string) ?? '';
-        const family = (idPayload.family_name as string) ?? '';
-
-        setUser({
-          id: idPayload.sub as string,
-          email: (idPayload.email as string) ?? '',
-          name: `${given} ${family}`.trim() || (idPayload.email as string),
-          role: (idPayload['custom:role'] as string) ?? 'staff',
-          tenantId: idPayload['custom:tenantId'] as string,
-        });
-
-        // Store tokens so Amplify's other APIs keep working
         const sub = idPayload.sub as string;
         const prefix = `CognitoIdentityServiceProvider.${CLIENT_ID}.${sub}`;
         localStorage.setItem(`${prefix}.idToken`, tokens.id_token);
@@ -102,11 +94,26 @@ function AuthCallbackInner() {
         localStorage.setItem(`${prefix}.refreshToken`, tokens.refresh_token);
         localStorage.setItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.LastAuthUser`, sub);
 
-        // Set cookie server-side so Next.js middleware sees it via Set-Cookie header
-        await fetch('/api/auth/session', {
+        // Provision / sync the user into the DB (creates row on first Google login)
+        setStatus('Syncing account…');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+        const syncRes = await fetch(`${API_URL}/auth/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: tokens.access_token, expiresIn: tokens.expires_in }),
+          body: JSON.stringify({ accessToken: tokens.access_token, idToken: tokens.id_token }),
+        });
+        if (!syncRes.ok) {
+          const text = await syncRes.text();
+          throw new Error(`Account sync failed (${syncRes.status}): ${text}`);
+        }
+        const profile = await syncRes.json() as { id: string; email: string; name: string; role: string; tenantId: string };
+
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          role: profile.role,
+          tenantId: profile.tenantId,
         });
 
         // Clean up PKCE state
@@ -114,7 +121,7 @@ function AuthCallbackInner() {
         localStorage.removeItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.oauthState`);
         localStorage.removeItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.inflightOAuth`);
 
-        window.location.href = '/';
+        window.location.href = profile.role === 'super_admin' ? '/super-admin/tenants' : '/';
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error('[callback] exchange error:', msg);

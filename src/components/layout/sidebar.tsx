@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   FolderOpen,
@@ -11,24 +11,40 @@ import {
   Settings,
   Menu,
   BookOpen,
+  ShieldCheck,
+  Users,
+  LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils/cn';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useAdminStore } from '@/lib/store/admin.store';
+import { useQueryClient } from '@tanstack/react-query';
 
-const allNavItems = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard, exact: true, adminOnly: false },
-  { label: 'Cases', href: '/cases', icon: FolderOpen, adminOnly: false },
-  { label: 'Calendar', href: '/calendar', icon: Calendar, adminOnly: false },
-  { label: 'Vendors', href: '/vendors', icon: Building2, adminOnly: false },
-  { label: 'Pre-Need', href: '/preneed', icon: BookOpen, adminOnly: false },
-  { label: 'Price List', href: '/price-list', icon: DollarSign, adminOnly: false },
-  { label: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
+const regularNavItems = [
+  { label: 'Dashboard', href: '/', icon: LayoutDashboard, exact: true },
+  { label: 'Cases', href: '/cases', icon: FolderOpen, exact: false },
+  { label: 'Calendar', href: '/calendar', icon: Calendar, exact: false },
+  { label: 'Vendors', href: '/vendors', icon: Building2, exact: false },
+  { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false },
+  { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false },
+  { label: 'Settings', href: '/settings', icon: Settings, exact: false, adminOnly: true },
 ];
 
-function NavLink({ item, onClick }: { item: (typeof allNavItems)[number]; onClick?: () => void }) {
+const adminNavItems = [
+  { label: 'Funeral Homes', href: '/super-admin/tenants', icon: ShieldCheck, exact: false },
+  { label: 'All Users', href: '/super-admin/users', icon: Users, exact: false },
+];
+
+function NavLink({
+  item,
+  onClick,
+}: {
+  item: { label: string; href: string; icon: React.ElementType; exact: boolean };
+  onClick?: () => void;
+}) {
   const pathname = usePathname();
   const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
   const Icon = item.icon;
@@ -51,9 +67,45 @@ function NavLink({ item, onClick }: { item: (typeof allNavItems)[number]; onClic
   );
 }
 
+function TenantViewBanner({ name, onExit }: { name: string; onExit: () => void }) {
+  return (
+    <div className="mx-3 mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+      <p className="text-xs text-amber-700 font-medium truncate">Viewing</p>
+      <p className="text-xs font-semibold truncate">{name}</p>
+      <button
+        onClick={onExit}
+        className="mt-1.5 flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 transition-colors"
+      >
+        <LogOut className="h-3 w-3" />
+        Exit tenant view
+      </button>
+    </div>
+  );
+}
+
 function SidebarContent({ onClose }: { onClose?: () => void }) {
-  const { canAccessSettings } = useCurrentUser();
-  const navItems = allNavItems.filter((item) => !item.adminOnly || canAccessSettings);
+  const { canAccessSettings, isSuperAdmin } = useCurrentUser();
+  const { activeTenantId, activeTenantName, exitTenantView } = useAdminStore();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleExit = () => {
+    exitTenantView();
+    queryClient.clear();
+    router.push('/super-admin/tenants');
+    onClose?.();
+  };
+
+  // Mode B: super_admin viewing a specific tenant
+  const inTenantView = isSuperAdmin && !!activeTenantId;
+
+  // Mode A: super_admin in admin context (no tenant selected)
+  const inAdminView = isSuperAdmin && !activeTenantId;
+
+  // Regular users: filter Settings by role
+  const visibleRegularItems = regularNavItems.filter(
+    (item) => !item.adminOnly || canAccessSettings,
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -62,11 +114,25 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         <span className="text-lg font-semibold tracking-tight">Kelova</span>
       </div>
 
-      {/* Nav items */}
+      {/* Tenant view banner */}
+      {inTenantView && activeTenantName && (
+        <div className="pt-3">
+          <TenantViewBanner name={activeTenantName} onExit={handleExit} />
+        </div>
+      )}
+
       <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => (
-          <NavLink key={item.href} item={item} onClick={onClose} />
-        ))}
+        {inAdminView ? (
+          // Mode A: admin-only nav
+          adminNavItems.map((item) => (
+            <NavLink key={item.href} item={item} onClick={onClose} />
+          ))
+        ) : (
+          // Mode B (tenant view) or regular user: full nav
+          visibleRegularItems.map((item) => (
+            <NavLink key={item.href} item={item} onClick={onClose} />
+          ))
+        )}
       </nav>
     </div>
   );
