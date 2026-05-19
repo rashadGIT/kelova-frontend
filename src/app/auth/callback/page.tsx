@@ -5,32 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
-const COGNITO_DOMAIN = process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? '';
-const REDIRECT_URI =
-  typeof window !== 'undefined'
-    ? `${window.location.origin}/auth/callback`
-    : 'http://localhost:3000/auth/callback';
 
 // Amplify v6 stores the PKCE verifier under this key
 const PKCE_KEY = `CognitoIdentityServiceProvider.${CLIENT_ID}.oauthPKCE`;
 
-interface TokenResponse {
-  access_token: string;
-  id_token: string;
-  refresh_token: string;
-  expires_in: number;
-  token_type: string;
-}
-
-function base64UrlDecode(str: string): string {
-  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  return atob(base64);
-}
-
-function parseJwt(token: string): Record<string, unknown> {
-  const [, payload] = token.split('.');
-  return JSON.parse(base64UrlDecode(payload));
-}
 
 function AuthCallbackInner() {
   const searchParams = useSearchParams();
@@ -62,51 +40,34 @@ function AuthCallbackInner() {
 
     async function exchangeCode() {
       try {
-        setStatus('Contacting Cognito…');
-        const body = new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: CLIENT_ID,
-          code: code!,
-          redirect_uri: REDIRECT_URI,
-          code_verifier: codeVerifier!,
-        });
+        setStatus('Completing sign-in…');
 
-        const res = await fetch(`https://${COGNITO_DOMAIN}/oauth2/token`, {
+        // Token exchange happens server-side — avoids browser CORS restrictions
+        // on the Cognito /oauth2/token endpoint.
+        const redirectUri = `${window.location.origin}/auth/callback`;
+        const res = await fetch(`/api/auth/exchange`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: body.toString(),
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            code: code!,
+            codeVerifier: codeVerifier!,
+            redirectUri,
+          }),
         });
 
         if (!res.ok) {
           const text = await res.text();
-          throw new Error(`Token exchange failed (${res.status}): ${text}`);
+          throw new Error(`Sign-in failed (${res.status}): ${text}`);
         }
 
-        const tokens: TokenResponse = await res.json();
-        setStatus('Parsing token…');
+        const profile = await res.json() as { id: string; email: string; name: string; role: string; tenantId: string; picture?: string; accessToken: string; cognitoSub: string };
 
-        // Store tokens so apiClient can send Bearer on the sync call
-        const idPayload = parseJwt(tokens.id_token);
-        const sub = idPayload.sub as string;
-        const prefix = `CognitoIdentityServiceProvider.${CLIENT_ID}.${sub}`;
-        localStorage.setItem(`${prefix}.idToken`, tokens.id_token);
-        localStorage.setItem(`${prefix}.accessToken`, tokens.access_token);
-        localStorage.setItem(`${prefix}.refreshToken`, tokens.refresh_token);
-        localStorage.setItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.LastAuthUser`, sub);
-
-        // Provision / sync the user into the DB (creates row on first Google login)
-        setStatus('Syncing account…');
-        const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
-        const syncRes = await fetch(`${API_URL}/auth/sync`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: tokens.access_token, idToken: tokens.id_token }),
-        });
-        if (!syncRes.ok) {
-          const text = await syncRes.text();
-          throw new Error(`Account sync failed (${syncRes.status}): ${text}`);
-        }
-        const profile = await syncRes.json() as { id: string; email: string; name: string; role: string; tenantId: string };
+        // Store the Cognito access token in localStorage using the same keys Amplify uses
+        // so getCognitoAccessToken() in apiClient can find it for subsequent API calls.
+        const prefix = `CognitoIdentityServiceProvider.${CLIENT_ID}`;
+        localStorage.setItem(`${prefix}.LastAuthUser`, profile.cognitoSub);
+        localStorage.setItem(`${prefix}.${profile.cognitoSub}.accessToken`, profile.accessToken);
 
         setUser({
           id: profile.id,
@@ -114,12 +75,13 @@ function AuthCallbackInner() {
           name: profile.name,
           role: profile.role,
           tenantId: profile.tenantId,
+          picture: profile.picture,
         });
 
         // Clean up PKCE state
         localStorage.removeItem(PKCE_KEY);
-        localStorage.removeItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.oauthState`);
-        localStorage.removeItem(`CognitoIdentityServiceProvider.${CLIENT_ID}.inflightOAuth`);
+        localStorage.removeItem(`${prefix}.oauthState`);
+        localStorage.removeItem(`${prefix}.inflightOAuth`);
 
         window.location.href = profile.role === 'super_admin' ? '/super-admin/tenants' : '/';
       } catch (err) {

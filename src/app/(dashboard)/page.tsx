@@ -5,11 +5,13 @@ import { FolderOpen, AlertCircle, CalendarDays, FileSignature, DollarSign, Alert
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { RecentCasesTable } from '@/components/dashboard/recent-cases-table';
+import { StaffDashboard } from '@/components/dashboard/staff-dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDashboardStats } from '@/lib/api/dashboard';
 import { getRevenueReport } from '@/lib/api/revenue';
 import { apiClient } from '@/lib/api/client';
+import { useAuthStore } from '@/lib/store/auth.store';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -81,6 +83,18 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
 type StaffWorkload = { id: string; name: string; email: string; role: string; activeCases: number; overdueTaskCount: number };
 
 export default function DashboardPage() {
+  const user = useAuthStore((s) => s.user);
+  return user?.role === 'staff' ? (
+    <div className="space-y-6">
+      <PageHeader title="Dashboard" />
+      <StaffDashboard />
+    </div>
+  ) : (
+    <DirectorDashboard />
+  );
+}
+
+function DirectorDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: getDashboardStats,

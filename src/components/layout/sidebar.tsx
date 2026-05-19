@@ -28,8 +28,8 @@ const regularNavItems = [
   { label: 'Cases', href: '/cases', icon: FolderOpen, exact: false },
   { label: 'Calendar', href: '/calendar', icon: Calendar, exact: false },
   { label: 'Vendors', href: '/vendors', icon: Building2, exact: false },
-  { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false },
-  { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false },
+  { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false, directorOnly: true },
+  { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false, directorOnly: true },
   { label: 'Settings', href: '/settings', icon: Settings, exact: false, adminOnly: true },
 ];
 
@@ -102,9 +102,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   // Mode A: super_admin in admin context (no tenant selected)
   const inAdminView = isSuperAdmin && !activeTenantId;
 
-  // Regular users: filter Settings by role
+  // Regular users: filter by role flags
+  const { isStaff } = useCurrentUser();
   const visibleRegularItems = regularNavItems.filter(
-    (item) => !item.adminOnly || canAccessSettings,
+    (item) =>
+      (!item.adminOnly || canAccessSettings) &&
+      (!item.directorOnly || !isStaff),
   );
 
   return (

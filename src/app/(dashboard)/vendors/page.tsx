@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, Plus } from 'lucide-react';
 import { getVendors, createVendor, deleteVendor } from '@/lib/api/vendors';
 import { VendorType } from '@/types';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 function AddVendorDialog({ onSuccess }: { onSuccess: () => void }) {
   const [open, setOpen] = useState(false);
@@ -76,6 +77,7 @@ function AddVendorDialog({ onSuccess }: { onSuccess: () => void }) {
 
 export default function VendorsPage() {
   const queryClient = useQueryClient();
+  const { isStaff } = useCurrentUser();
   const { data: vendors = [], isLoading } = useQuery({ queryKey: ['vendors'], queryFn: getVendors });
 
   const deleteMutation = useMutation({
@@ -85,11 +87,15 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Vendors" description="Manage your vendor directory." action={<AddVendorDialog onSuccess={() => {}} />} />
+      <PageHeader
+        title="Vendors"
+        description="Manage your vendor directory."
+        action={!isStaff ? <AddVendorDialog onSuccess={() => {}} /> : undefined}
+      />
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
       ) : vendors.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No vendors yet. Add your first vendor above.</p>
+        <p className="text-sm text-muted-foreground">No vendors yet.</p>
       ) : (
         <div className="rounded-md border divide-y">
           {vendors.map((v) => (
@@ -99,11 +105,14 @@ export default function VendorsPage() {
                 <div className="flex items-center gap-2 mt-0.5">
                   <Badge variant="outline" className="text-xs">{v.type}</Badge>
                   {v.phone && <span className="text-xs text-muted-foreground">{v.phone}</span>}
+                  {v.email && <span className="text-xs text-muted-foreground">{v.email}</span>}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteMutation.mutate(v.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {!isStaff && (
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteMutation.mutate(v.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           ))}
         </div>

@@ -3,7 +3,7 @@ import path from 'path';
 import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@vigil/shared-types'],
+  transpilePackages: ['@kelova/shared-types'],
   eslint: {
     ignoreDuringBuilds: true,
   },
