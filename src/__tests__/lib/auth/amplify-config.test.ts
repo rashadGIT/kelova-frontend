@@ -87,7 +87,7 @@ describe('configureAmplify', () => {
     setEnv({
       NEXT_PUBLIC_COGNITO_USER_POOL_ID: 'us-east-2_TestPool',
       NEXT_PUBLIC_COGNITO_CLIENT_ID: 'test-client-id',
-      NEXT_PUBLIC_COGNITO_DOMAIN: 'auth.vigilhq.auth.us-east-2.amazoncognito.com',
+      NEXT_PUBLIC_COGNITO_DOMAIN: 'kelova-auth.auth.us-east-2.amazoncognito.com',
     });
 
     configureAmplify();
@@ -95,16 +95,16 @@ describe('configureAmplify', () => {
     const { loginWith } = mockConfigure.mock.calls[0][0].Auth.Cognito;
     expect(loginWith.email).toBe(true);
     expect(loginWith.oauth).toEqual({
-      domain: 'auth.vigilhq.auth.us-east-2.amazoncognito.com',
+      domain: 'kelova-auth.auth.us-east-2.amazoncognito.com',
       scopes: ['email', 'profile', 'openid'],
       redirectSignIn: [
         'http://localhost:3000/auth/callback',
-        'https://app.vigilhq.com/auth/callback',
+        'https://app.kelova.com/auth/callback',
         'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
       ],
       redirectSignOut: [
         'http://localhost:3000/login',
-        'https://app.vigilhq.com/login',
+        'https://app.kelova.com/login',
         'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
       ],
       responseType: 'code',
@@ -132,12 +132,12 @@ describe('configureAmplify', () => {
               scopes: ['email', 'profile', 'openid'],
               redirectSignIn: [
                 'http://localhost:3000/auth/callback',
-                'https://app.vigilhq.com/auth/callback',
+                'https://app.kelova.com/auth/callback',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
               ],
               redirectSignOut: [
                 'http://localhost:3000/login',
-                'https://app.vigilhq.com/login',
+                'https://app.kelova.com/login',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
               ],
               responseType: 'code',

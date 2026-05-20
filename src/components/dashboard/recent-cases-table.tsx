@@ -26,7 +26,7 @@ export function RecentCasesTable() {
 
   // D-11: Empty state
   if (cases.length === 0) {
-    const slug = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' ? 'sunrise' : '[slug]';
+    const slug = '[slug]';
     const intakeUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/intake/${slug}`
       : `/intake/${slug}`;

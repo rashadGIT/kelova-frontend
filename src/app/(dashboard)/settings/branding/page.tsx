@@ -1,76 +1,119 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Pencil, Check, X } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 
-const brandingSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  googleReviewUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
-});
-
-type BrandingFormValues = z.infer<typeof brandingSchema>;
+type Field = 'name' | 'googleReviewUrl';
 
 export default function BrandingSettingsPage() {
   const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<Field | null>(null);
+  const [draft, setDraft] = useState('');
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],
     queryFn: () => apiClient.get('/settings').then((r) => r.data),
   });
 
-  const form = useForm<BrandingFormValues>({
-    resolver: zodResolver(brandingSchema),
-    defaultValues: { name: '', googleReviewUrl: '' },
-  });
-
-  useEffect(() => {
-    if (settings) {
-      form.reset({ name: settings.name ?? '', googleReviewUrl: settings.googleReviewUrl ?? '' });
-    }
-  }, [settings, form]);
-
   const mutation = useMutation({
-    mutationFn: (values: BrandingFormValues) => apiClient.patch('/settings', values),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['settings'] }); toast.success('Settings saved.'); },
+    mutationFn: (patch: Partial<Record<Field, string>>) => apiClient.patch('/settings', patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Settings saved.');
+      setEditing(null);
+    },
     onError: () => toast.error('Failed to save settings.'),
   });
+
+  function startEdit(field: Field) {
+    setDraft(settings?.[field] ?? '');
+    setEditing(field);
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setDraft('');
+  }
+
+  function save(field: Field) {
+    mutation.mutate({ [field]: draft });
+  }
+
+  const fields: { key: Field; label: string; hint?: string; placeholder?: string }[] = [
+    { key: 'name', label: 'Funeral Home Name' },
+    {
+      key: 'googleReviewUrl',
+      label: 'Google Review URL',
+      hint: 'Used for automated review requests 14 days after service completion.',
+      placeholder: 'https://g.page/...',
+    },
+  ];
 
   return (
     <div className="space-y-6 max-w-lg">
       <PageHeader title="Branding" description="Funeral home name and review link." />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
-          <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-medium">Funeral Home Name</FormLabel>
-              <FormControl><Input {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <Separator />
-          <FormField control={form.control} name="googleReviewUrl" render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-medium">Google Review URL</FormLabel>
-              <FormControl><Input placeholder="https://g.page/..." {...field} /></FormControl>
-              <FormMessage />
-              <p className="text-xs text-muted-foreground">Used for automated review requests 14 days after service completion.</p>
-            </FormItem>
-          )} />
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </form>
-      </Form>
+      <div className="divide-y rounded-md border">
+        {fields.map(({ key, label, hint, placeholder }) => (
+          <div key={key} className="px-4 py-4">
+            <div className="flex items-center justify-between gap-4 mb-1">
+              <p className="text-sm font-medium text-muted-foreground">{label}</p>
+              {editing !== key && (
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => startEdit(key)}>
+                  <Pencil className="h-3 w-3" />
+                  Edit
+                </Button>
+              )}
+            </div>
+
+            {editing === key ? (
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  autoFocus
+                  value={draft}
+                  placeholder={placeholder}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') save(key);
+                    if (e.key === 'Escape') cancelEdit();
+                  }}
+                  className="h-8 text-sm"
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
+                  disabled={mutation.isPending}
+                  onClick={() => save(key)}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 shrink-0"
+                  onClick={cancelEdit}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm">
+                {settings?.[key] || <span className="text-muted-foreground italic">Not set</span>}
+              </p>
+            )}
+
+            {hint && editing !== key && (
+              <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

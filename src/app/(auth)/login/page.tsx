@@ -19,10 +19,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-const DEV_BYPASS = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true';
-
-// Show in dev mode for UI preview; in production requires NEXT_PUBLIC_COGNITO_DOMAIN
-const HAS_GOOGLE = DEV_BYPASS || !!process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
+const HAS_GOOGLE = !!process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,8 +31,8 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: DEV_BYPASS ? 'director@sunrise.demo' : '',
-      password: DEV_BYPASS ? 'Dev1234!' : '',
+      email: '',
+      password: '',
     },
   });
 
@@ -113,13 +110,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      {/* D-12: Yellow DEV MODE banner */}
-      {DEV_BYPASS && (
-        <div className="w-full max-w-sm mb-4 rounded-md bg-yellow-100 border border-yellow-300 px-4 py-2 text-sm font-medium text-yellow-800">
-          DEV MODE — Auth bypassed. Cognito is not contacted.
-        </div>
-      )}
-
       <Card className="w-full max-w-sm shadow-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-semibold">Sign in to Kelova</CardTitle>

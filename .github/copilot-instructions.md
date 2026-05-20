@@ -11,13 +11,13 @@ This is the frontend for Kelova — a multi-tenant SaaS platform for independent
 - **Styling**: Tailwind CSS
 - **Testing**: Jest + React Testing Library (unit/component), Playwright (E2E)
 - **Linting**: ESLint + Prettier (runs on commit via lint-staged)
-- **Auth**: Dev bypass via `NEXT_PUBLIC_DEV_AUTH_BYPASS=true`, production uses Cognito
+- **Auth**: AWS Cognito — Google OAuth via hosted UI, PKCE flow
 
 ## How to Run Locally
 
 ```bash
 npm install
-NEXT_PUBLIC_DEV_AUTH_BYPASS=true NEXT_PUBLIC_API_URL=http://localhost:3001 npm run dev
+NEXT_PUBLIC_API_URL=http://localhost:3001 npm run dev
 ```
 
 ## Code Conventions

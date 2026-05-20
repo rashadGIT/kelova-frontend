@@ -7,6 +7,7 @@ export interface AuthUser {
   name: string;
   role: string;
   tenantId: string;
+  picture?: string;
 }
 
 interface AuthState {
@@ -28,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
       clearUser: () => set({ user: null, isAuthenticated: false }),
     }),
     {
-      name: 'vigil-user',
+      name: 'kelova-user',
       skipHydration: true,
     },
   ),

@@ -12,7 +12,7 @@ const config: Config = {
     '^next/link$': '<rootDir>/src/__mocks__/next/link.tsx',
     '^next/image$': '<rootDir>/src/__mocks__/next/image.tsx',
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@vigil/shared-types$': '<rootDir>/../packages/shared-types/src/index.ts',
+    '^@kelova/shared-types$': '<rootDir>/../packages/shared-types/src/index.ts',
   },
   testMatch: [
     '<rootDir>/src/__tests__/**/*.test.tsx',
