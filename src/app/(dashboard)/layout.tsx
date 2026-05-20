@@ -1,8 +1,15 @@
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { TopBar } from '@/components/layout/top-bar';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  if (!cookieStore.get('access_token')) {
+    redirect('/login');
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AuthInitializer />
