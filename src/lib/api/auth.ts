@@ -42,11 +42,16 @@ export async function login(credentials: LoginCredentials): Promise<UserProfile>
   clearStaleOAuthState();
   await signOut({ global: false }).catch(() => null);
 
-  const loginRes = await apiClient.post<{ accessToken: string }>('/auth/login', {
-    email: credentials.email,
-    password: credentials.password,
+  // Route through the Next.js proxy so the backend Set-Cookie headers are
+  // scoped to the frontend domain (the middleware reads access_token cookie).
+  const loginRes = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ email: credentials.email, password: credentials.password }),
   });
-  const { accessToken } = loginRes.data;
+  if (!loginRes.ok) throw new Error('Invalid credentials');
+  const { accessToken } = (await loginRes.json()) as { accessToken: string };
   storeAccessToken(accessToken);
 
   const res = await apiClient.get<UserProfile>('/auth/me', {
@@ -57,8 +62,13 @@ export async function login(credentials: LoginCredentials): Promise<UserProfile>
 
 export async function logout(): Promise<void> {
   await signOut().catch(() => null);
-  await apiClient.post('/auth/logout').catch(() => null);
-  // Clear any Amplify-compatible tokens stored by the OAuth callback
+  // Call through the Next.js proxy so the access_token cookie is cleared
+  // on the frontend domain (the middleware reads it from there).
+  await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+  }).catch(() => null);
   if (typeof window !== 'undefined') {
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
     const prefix = `CognitoIdentityServiceProvider.${clientId}`;
