@@ -1,4 +1,4 @@
-import { signIn, signOut } from 'aws-amplify/auth';
+import { signOut } from 'aws-amplify/auth';
 import { apiClient } from './client';
 
 export interface LoginCredentials {
@@ -14,9 +14,6 @@ export interface UserProfile {
   tenantId: string;
 }
 
-// Amplify throws "redirect is coming from a different origin" when it finds
-// stale inflightOAuth state from a previous (possibly cross-origin) Google attempt.
-// Clear it before any Amplify auth call so both flows start clean.
 function clearStaleOAuthState() {
   if (typeof window === 'undefined') return;
   const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
@@ -26,22 +23,35 @@ function clearStaleOAuthState() {
   localStorage.removeItem(`${prefix}.oauthPKCE`);
 }
 
-// Login flow:
-// 1. Authenticate (Cognito in prod, no-op in dev)
-// 2. Backend sets access_token as httpOnly cookie on its /auth/login endpoint
-// 3. Fetch /auth/me to get user metadata for the Zustand store
-// The token itself never touches the browser JS context in production.
+// Persist the access token in localStorage under the Amplify-compatible key
+// format so the apiClient interceptor can attach it as a Bearer header on all
+// subsequent requests (cookies are cross-origin and won't be sent).
+function storeAccessToken(accessToken: string) {
+  if (typeof window === 'undefined') return;
+  const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
+  const prefix = `CognitoIdentityServiceProvider.${clientId}`;
+  const [, rawClaims] = accessToken.split('.');
+  const { username } = JSON.parse(
+    atob(rawClaims.replace(/-/g, '+').replace(/_/g, '/')),
+  ) as { username: string };
+  localStorage.setItem(`${prefix}.LastAuthUser`, username);
+  localStorage.setItem(`${prefix}.${username}.accessToken`, accessToken);
+}
+
 export async function login(credentials: LoginCredentials): Promise<UserProfile> {
   clearStaleOAuthState();
-  // Clear any existing Amplify session before signing in to avoid
-  // "There is already a signed in user" error from stale OAuth state.
   await signOut({ global: false }).catch(() => null);
-  await signIn({ username: credentials.email, password: credentials.password });
-  await apiClient.post('/auth/login', {
+
+  const loginRes = await apiClient.post<{ accessToken: string }>('/auth/login', {
     email: credentials.email,
     password: credentials.password,
   });
-  const res = await apiClient.get<UserProfile>('/auth/me');
+  const { accessToken } = loginRes.data;
+  storeAccessToken(accessToken);
+
+  const res = await apiClient.get<UserProfile>('/auth/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   return res.data;
 }
 
