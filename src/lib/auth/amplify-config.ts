@@ -19,11 +19,13 @@ export function configureAmplify() {
                 'http://localhost:3000/auth/callback',
                 'https://app.kelova.com/auth/callback',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
+                'https://main.dlrm9a0dpsu77.amplifyapp.com/auth/callback',
               ],
               redirectSignOut: [
                 'http://localhost:3000/login',
                 'https://app.kelova.com/login',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
+                'https://main.dlrm9a0dpsu77.amplifyapp.com/login',
               ],
               responseType: 'code',
             },
