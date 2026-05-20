@@ -18,10 +18,13 @@ export async function POST(req: NextRequest) {
 
   const response = NextResponse.json(data, { status: res.status });
 
-  // Forward the Set-Cookie headers from the backend (access_token, refresh_token)
+  // Forward the Set-Cookie headers from the backend (access_token, refresh_token).
+  // Strip the Domain attribute so the cookie is scoped to the current origin rather
+  // than .kelovaapp.com, which the browser would reject on non-kelova hosts (e.g. amplifyapp.com).
   const setCookie = res.headers.getSetCookie?.() ?? [];
   for (const cookie of setCookie) {
-    response.headers.append('Set-Cookie', cookie);
+    const sanitized = cookie.replace(/;\s*domain=[^;]*/i, '');
+    response.headers.append('Set-Cookie', sanitized);
   }
 
   return response;
