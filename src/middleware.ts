@@ -24,14 +24,6 @@ export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   if (tenantSlug) requestHeaders.set('x-tenant-slug', tenantSlug);
 
-  // Dashboard auth guard: only redirect in DEV_BYPASS mode for /login.
-  // Real auth enforcement happens via AuthInitializer + the backend returning 401.
-  // The cookie check was removed because the session cookie is set async after OAuth
-  // and wasn't reliably present before the middleware ran, causing a login redirect loop.
-  if (DEV_BYPASS && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
   // Super-admin route guard — redirect non-super-admins to dashboard
   const isSuperAdminRoute = SUPER_ADMIN_PATHS.some((p) => pathname.startsWith(p));
   if (isSuperAdminRoute) {

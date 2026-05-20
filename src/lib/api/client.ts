@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useAdminStore } from '@/lib/store/admin.store';
 
 const DEV_BYPASS = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true';
 const DEV_TENANT_ID = process.env.NEXT_PUBLIC_DEV_TENANT_ID ?? 'seed-tenant-id';
@@ -37,6 +38,11 @@ apiClient.interceptors.request.use((config) => {
   const token = getCognitoAccessToken();
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Super-admin tenant view: inject x-tenant-id so the backend scopes queries to the selected tenant
+  const { activeTenantId } = useAdminStore.getState();
+  if (activeTenantId) {
+    config.headers['x-tenant-id'] = activeTenantId;
   }
   return config;
 });

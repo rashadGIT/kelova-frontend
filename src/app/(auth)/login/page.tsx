@@ -103,7 +103,7 @@ export default function LoginPage() {
     try {
       const user = await login(values);
       setUser(user);
-      router.push('/');
+      router.push(user.role === 'super_admin' ? '/super-admin/tenants' : '/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Check your credentials.');
     } finally {
