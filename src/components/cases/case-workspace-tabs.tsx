@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
@@ -10,6 +11,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const primaryTabs = [
   { label: 'Overview', href: '' },
@@ -30,69 +38,99 @@ const overflowTabs = [
   { label: 'Cemetery', href: '/cemetery' },
 ];
 
+const allTabs = [...primaryTabs, ...overflowTabs];
+
 export function CaseWorkspaceTabs({ caseId }: { caseId: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const base = `/cases/${caseId}`;
 
-  const isOverflowActive = overflowTabs.some((tab) => {
-    const href = `${base}${tab.href}`;
-    return pathname.startsWith(href);
-  });
+  useEffect(() => {
+    allTabs.forEach((tab) => router.prefetch(`${base}${tab.href}`));
+  }, [base, router]);
+
+  const isOverflowActive = overflowTabs.some((tab) => pathname.startsWith(`${base}${tab.href}`));
+
+  const activeTab =
+    allTabs.find((tab) =>
+      tab.href === '' ? pathname === base : pathname.startsWith(`${base}${tab.href}`),
+    ) ?? allTabs[0];
 
   return (
-    <div className="border-b mb-6 overflow-x-auto">
-      <nav className="flex -mb-px min-w-max">
-        {primaryTabs.map((tab) => {
-          const href = `${base}${tab.href}`;
-          const isActive = tab.href === '' ? pathname === base : pathname.startsWith(href);
-          return (
-            <Link
-              key={tab.label}
-              href={href}
-              className={cn(
-                'px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors',
-                isActive
-                  ? 'border-primary text-primary font-medium'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground',
-              )}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
+    <>
+      {/* Mobile: shadcn select — use '__overview__' sentinel because Radix forbids empty string values */}
+      <div className="sm:hidden mb-6">
+        <Select
+          value={activeTab.href === '' ? '__overview__' : activeTab.href}
+          onValueChange={(val) => router.push(`${base}${val === '__overview__' ? '' : val}`)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue>{activeTab.label}</SelectValue>
+          </SelectTrigger>
+          <SelectContent className="data-[state=closed]:animate-none data-[state=closed]:fade-out-0 duration-0">
+            {allTabs.map((tab) => (
+              <SelectItem key={tab.label} value={tab.href === '' ? '__overview__' : tab.href}>
+                {tab.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                'px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors inline-flex items-center gap-1',
-                isOverflowActive
-                  ? 'border-primary text-primary font-medium bg-accent'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground',
-              )}
-            >
-              More
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {overflowTabs.map((tab) => {
-              const href = `${base}${tab.href}`;
-              const isActive = pathname.startsWith(href);
-              return (
-                <DropdownMenuItem
-                  key={tab.label}
-                  className={cn(isActive && 'bg-accent text-accent-foreground font-medium')}
-                  onSelect={() => router.push(href)}
-                >
-                  {tab.label}
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </nav>
-    </div>
+      {/* Desktop: tab bar */}
+      <div className="hidden sm:block border-b mb-6 overflow-x-auto">
+        <nav className="flex -mb-px min-w-max">
+          {primaryTabs.map((tab) => {
+            const href = `${base}${tab.href}`;
+            const isActive = tab.href === '' ? pathname === base : pathname.startsWith(href);
+            return (
+              <Link
+                key={tab.label}
+                href={href}
+                className={cn(
+                  'px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors',
+                  isActive
+                    ? 'border-primary text-primary font-medium'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+                )}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  'px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors inline-flex items-center gap-1',
+                  isOverflowActive
+                    ? 'border-primary text-primary font-medium bg-accent'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+                )}
+              >
+                More
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {overflowTabs.map((tab) => {
+                const href = `${base}${tab.href}`;
+                const isActive = pathname.startsWith(href);
+                return (
+                  <DropdownMenuItem
+                    key={tab.label}
+                    className={cn(isActive && 'bg-accent text-accent-foreground font-medium')}
+                    onSelect={() => router.push(href)}
+                  >
+                    {tab.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </nav>
+      </div>
+    </>
   );
 }
