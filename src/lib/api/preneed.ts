@@ -96,3 +96,28 @@ export async function convertPreNeed(id: string): Promise<{ caseId: string }> {
   const res = await apiClient.post<{ arrangement: unknown; case: { id: string } }>(`/preneed/${id}/convert`);
   return { caseId: res.data.case.id };
 }
+
+export async function submitPublicPreplanning(
+  slug: string,
+  dto: CreatePreNeedDto,
+): Promise<PreNeedArrangement> {
+  const { publicApiClient } = await import('./public-client');
+  const res = await publicApiClient.post<Record<string, unknown>>(
+    `/preplanning/${slug}`,
+    {
+      clientFirstName:  dto.firstName,
+      clientLastName:   dto.lastName,
+      clientDob:        dto.dob,
+      clientPhone:      dto.phone,
+      clientEmail:      dto.email,
+      clientAddress:    dto.address,
+      serviceType:      dto.serviceType,
+      fundingType:      dto.fundingType,
+      insuranceCompany: dto.insuranceCompany,
+      policyNumber:     dto.policyNumber,
+      faceValue:        dto.faceValue,
+      notes:            dto.notes,
+    },
+  );
+  return fromApi(res.data);
+}

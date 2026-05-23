@@ -110,4 +110,19 @@ describe('TaskItem', () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).toMatch(/opacity/);
   });
+
+  it('shows "Task reopened." toast when a completed task is unchecked', async () => {
+    const { toast } = await import('sonner');
+    const user = userEvent.setup();
+    renderWithQuery(<TaskItem task={{ ...baseTask, completed: true }} caseId="case-1" />);
+
+    await user.click(screen.getByRole('checkbox'));
+
+    await waitFor(() => {
+      expect(mockUpdateTask).toHaveBeenCalledWith('task-1', { completed: false });
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Task reopened.');
+    });
+  });
 });

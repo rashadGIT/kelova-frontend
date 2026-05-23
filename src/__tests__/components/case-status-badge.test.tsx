@@ -50,4 +50,9 @@ describe('CaseStatusBadge', () => {
     const badge = container.firstChild as HTMLElement;
     expect(badge.className).toMatch(/muted/);
   });
+
+  it('falls back to "new" kind for an unknown status value', () => {
+    render(<CaseStatusBadge status={'unknown_status' as CaseStatus} />);
+    expect(screen.getByText('New')).toBeInTheDocument();
+  });
 });

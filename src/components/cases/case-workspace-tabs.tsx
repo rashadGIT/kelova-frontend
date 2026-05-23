@@ -28,6 +28,10 @@ const overflowTabs = [
   { label: 'Cremation Auth', href: '/cremation-auth' },
   { label: 'Merchandise', href: '/merchandise' },
   { label: 'Cemetery', href: '/cemetery' },
+  { label: 'Memorial', href: '/memorial' },
+  { label: 'Photos', href: '/photos' },
+  { label: 'Tracking', href: '/tracking' },
+  { label: 'Accommodations', href: '/accommodations' },
 ];
 
 export function CaseWorkspaceTabs({ caseId }: { caseId: string }) {

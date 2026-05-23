@@ -20,7 +20,8 @@ import {
   type MerchandiseItem,
 } from '@/lib/api/merchandise';
 
-function formatPrice(n: number) {
+function formatPrice(n: number | null | undefined) {
+  if (n == null) return '—';
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }
 

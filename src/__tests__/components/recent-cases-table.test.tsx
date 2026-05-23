@@ -127,4 +127,69 @@ describe('RecentCasesTable', () => {
 
     expect(mockPush).toHaveBeenCalledWith('/cases/case-1');
   });
+
+  it('falls back to path-only intake URL when window is not defined (SSR)', async () => {
+    mockGetRecentCases.mockResolvedValue([]);
+
+    const savedWindow = global.window;
+    // @ts-ignore
+    delete global.window;
+
+    renderWithQuery(<RecentCasesTable />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /copy intake link/i })).toBeInTheDocument();
+    });
+
+    // @ts-ignore
+    global.window = savedWindow;
+  });
+
+  it('navigates on Enter keydown on a case row', async () => {
+    const mockPush = jest.fn();
+    jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
+
+    mockGetRecentCases.mockResolvedValue(mockCases);
+    renderWithQuery(<RecentCasesTable />);
+
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    const rows = screen.getAllByRole('row');
+    const dataRow = rows.find((r) => r.textContent?.includes('Alice Smith'))!;
+    dataRow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(mockPush).toHaveBeenCalledWith('/cases/case-1');
+  });
+
+  it('navigates on Space keydown on a case row', async () => {
+    const mockPush = jest.fn();
+    jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
+
+    mockGetRecentCases.mockResolvedValue(mockCases);
+    renderWithQuery(<RecentCasesTable />);
+
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    const rows = screen.getAllByRole('row');
+    const dataRow = rows.find((r) => r.textContent?.includes('Alice Smith'))!;
+    dataRow.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+
+    expect(mockPush).toHaveBeenCalledWith('/cases/case-1');
+  });
+
+  it('does not navigate on other keydown events on a case row', async () => {
+    const mockPush = jest.fn();
+    jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
+
+    mockGetRecentCases.mockResolvedValue(mockCases);
+    renderWithQuery(<RecentCasesTable />);
+
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    const rows = screen.getAllByRole('row');
+    const dataRow = rows.find((r) => r.textContent?.includes('Alice Smith'))!;
+    dataRow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 });

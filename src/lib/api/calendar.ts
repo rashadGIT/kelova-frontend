@@ -18,3 +18,11 @@ export async function createCalendarEvent(dto: {
   const res = await apiClient.post<ICalendarEvent>('/calendar/events', dto);
   return res.data;
 }
+
+export async function updateEventStreaming(
+  eventId: string,
+  dto: { streamingEnabled: boolean; streamingUrl?: string; streamingPassword?: string },
+): Promise<ICalendarEvent> {
+  const res = await apiClient.patch<ICalendarEvent>(`/calendar/events/${eventId}/streaming`, dto);
+  return res.data;
+}

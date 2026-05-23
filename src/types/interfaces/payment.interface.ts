@@ -6,6 +6,8 @@ export interface IPayment {
   amountPaid: number;
   method: string;
   notes: string | null;
+  stripeCheckoutSessionId: string | null;
+  stripePaymentIntentId: string | null;
   createdAt: string;
   updatedAt: string;
 }

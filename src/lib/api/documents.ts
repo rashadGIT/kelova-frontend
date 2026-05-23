@@ -21,6 +21,15 @@ export async function getPresignedUploadUrl(caseId: string, fileName: string, fi
 }
 
 export async function getDocumentDownloadUrl(documentId: string): Promise<string> {
-  const res = await apiClient.get<{ url: string }>(`/documents/${documentId}/download`);
+  const res = await apiClient.get<{ url: string }>(`/documents/${documentId}/url`);
   return res.data.url;
+}
+
+export async function generateReceipt(
+  caseId: string,
+): Promise<{ documentId: string; url: string }> {
+  const res = await apiClient.post<{ documentId: string; url: string }>(
+    `/cases/${caseId}/receipts/generate`,
+  );
+  return res.data;
 }

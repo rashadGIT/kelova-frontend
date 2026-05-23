@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusPill } from '@/components/ui/status-pill';
 import { apiClient } from '@/lib/api/client';
+import { getStateFormConfig } from '@/lib/api/state-forms';
 
 const schema = z.object({
   physicianName: z.string().min(1, 'Physician name is required'),
@@ -38,6 +39,19 @@ function toInputDatetime(val: string | null | undefined): string {
 
 function DeathCertificateContent({ caseId }: { caseId: string }) {
   const queryClient = useQueryClient();
+
+  const { data: caseData } = useQuery({
+    queryKey: ['case', caseId],
+    queryFn: () => apiClient.get(`/cases/${caseId}`).then((r) => r.data as { stateOfDeath?: string | null }),
+  });
+
+  const stateOfDeath = caseData?.stateOfDeath ?? null;
+
+  const { data: stateConfig } = useQuery({
+    queryKey: ['state-form', stateOfDeath, 'death_certificate'],
+    queryFn: () => getStateFormConfig(stateOfDeath!, 'death_certificate'),
+    enabled: !!stateOfDeath,
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['death-certificate', caseId],
@@ -271,6 +285,41 @@ function DeathCertificateContent({ caseId }: { caseId: string }) {
               </div>
             </CardContent>
           </Card>
+
+          {stateConfig && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {stateConfig.state} Required Fields
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1.5">
+                  {stateConfig.fields.filter((f) => f.required).map((field) => (
+                    <li key={field.name} className="flex items-start gap-2 text-sm">
+                      <span className="text-muted-foreground mt-0.5">•</span>
+                      <div>
+                        <span className="font-medium">{field.label}</span>
+                        {field.hint && (
+                          <p className="text-xs text-muted-foreground">{field.hint}</p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {!stateOfDeath && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground">
+                  Set the state of death on the case to see state-specific required fields.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </form>

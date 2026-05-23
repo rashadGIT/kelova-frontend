@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, Plus, ShieldCheck } from 'lucide-react';
 import { getPriceList, createPriceListItem, deletePriceListItem } from '@/lib/api/price-list';
 import { apiClient } from '@/lib/api/client';
+import { ExternalLink } from 'lucide-react';
 import { PriceCategory } from '@/types';
 
 const categoryLabel: Record<PriceCategory, string> = {
@@ -36,6 +37,10 @@ export default function PriceListPage() {
   const [category, setCategory] = useState<PriceCategory>(PriceCategory.professional_services);
 
   const { data: items = [], isLoading } = useQuery({ queryKey: ['price-list'], queryFn: getPriceList });
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => apiClient.get<{ slug: string }>('/settings').then((r) => r.data),
+  });
 
   const createMutation = useMutation({
     mutationFn: () => createPriceListItem({ name, category, price: parseFloat(price) }),
@@ -65,6 +70,13 @@ export default function PriceListPage() {
         description="FTC General Price List — manage categories and items."
         action={
           <div className="flex items-center gap-2">
+            {settings?.slug && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/p/${settings.slug}/prices`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />View Public Page
+                </a>
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <Link href="/price-list/audit"><ShieldCheck className="h-4 w-4 mr-2" />Compliance Log</Link>
             </Button>
