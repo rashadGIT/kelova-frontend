@@ -15,6 +15,7 @@ import {
   Users,
   LogOut,
   BarChart2,
+  Layers,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -32,6 +33,7 @@ const regularNavItems = [
   { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false, directorOnly: true },
   { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false, directorOnly: true },
   { label: 'Analytics', href: '/analytics', icon: BarChart2, exact: false, directorOnly: true },
+  { label: 'Multi-Location', href: '/multi-location', icon: Layers, exact: false, directorOnly: true },
   { label: 'Settings', href: '/settings', icon: Settings, exact: false, adminOnly: true },
 ];
 

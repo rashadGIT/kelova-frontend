@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FolderOpen, Calendar, CheckSquare, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { useAdminStore } from '@/lib/store/admin.store';
 
 const MOBILE_TABS = [
   { label: 'Home', href: '/', icon: LayoutDashboard, exact: true },
@@ -15,6 +16,9 @@ const MOBILE_TABS = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const activeTenantId = useAdminStore((s) => s.activeTenantId);
+
+  if (activeTenantId) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">

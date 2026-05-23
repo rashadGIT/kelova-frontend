@@ -3,6 +3,16 @@
 import { use } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils/cn';
+import {
+  getSubmissionsByCase,
+  submitObituary,
+  confirmPublished,
+  updateSubmissionStatus,
+} from '@/lib/api/obituary-publishing';
+import type { IObituarySubmission } from '@/types';
+import { ExternalLink, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
 import { Button } from '@/components/ui/button';
@@ -12,6 +22,20 @@ import { StatusPill } from '@/components/ui/status-pill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiClient } from '@/lib/api/client';
 import { Copy, Wand2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 function wordCount(text: string): number {
   return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
@@ -204,14 +228,290 @@ function ObituaryEditor({ caseId }: { caseId: string }) {
   );
 }
 
+const SUB_STATUS_COLORS: Record<IObituarySubmission['status'], string> = {
+  submitted: 'bg-blue-100 text-blue-700',
+  published: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  cancelled: 'bg-slate-100 text-slate-700',
+};
+
+function PublishingTab({ caseId }: { caseId: string }) {
+  const queryClient = useQueryClient();
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [outlet, setOutlet] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [submitNotes, setSubmitNotes] = useState('');
+  const [publishedUrl, setPublishedUrl] = useState('');
+
+  const { data: obituary } = useQuery({
+    queryKey: ['obituary', caseId],
+    queryFn: () =>
+      apiClient.get(`/cases/${caseId}/obituary`).then((r) => r.data).catch((e) => {
+        if (e?.response?.status === 404) return null;
+        throw e;
+      }),
+  });
+
+  const { data: submissions = [], isLoading } = useQuery({
+    queryKey: ['obituary-submissions', caseId],
+    queryFn: () => getSubmissionsByCase(caseId),
+    enabled: !!obituary,
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: () =>
+      submitObituary(obituary.id, {
+        outlet,
+        contactName: contactName || undefined,
+        contactEmail: contactEmail || undefined,
+        notes: submitNotes || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['obituary-submissions', caseId] });
+      toast.success('Submitted to outlet.');
+      setSubmitOpen(false);
+      setOutlet(''); setContactName(''); setContactEmail(''); setSubmitNotes('');
+    },
+    onError: () => toast.error('Failed to submit.'),
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: () =>
+      confirmPublished(confirmId!, { publishedUrl: publishedUrl || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['obituary-submissions', caseId] });
+      toast.success('Marked as published.');
+      setConfirmId(null);
+      setPublishedUrl('');
+    },
+    onError: () => toast.error('Failed to confirm.'),
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: IObituarySubmission['status'] }) =>
+      updateSubmissionStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['obituary-submissions', caseId] });
+      toast.success('Status updated.');
+    },
+  });
+
+  if (!obituary) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            No obituary found. Write and save a draft on the Obituary tab first.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">
+          {submissions.length} submission{submissions.length !== 1 ? 's' : ''}
+        </p>
+        <Button size="sm" onClick={() => setSubmitOpen(true)} disabled={obituary?.status !== 'approved'}>
+          <Send className="h-3.5 w-3.5 mr-1.5" />
+          Submit to Outlet
+        </Button>
+      </div>
+
+      {obituary?.status !== 'approved' && (
+        <p className="text-xs text-amber-600">
+          Approve the obituary on the Obituary tab before submitting to outlets.
+        </p>
+      )}
+
+      {isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : submissions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">No submissions yet.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-0 divide-y">
+            {submissions.map((sub) => (
+              <div key={sub.id} className="flex items-start justify-between px-4 py-3 gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{sub.outlet}</p>
+                  {sub.contactName && (
+                    <p className="text-xs text-muted-foreground">{sub.contactName}</p>
+                  )}
+                  {sub.publishedUrl && (
+                    <a
+                      href={sub.publishedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary flex items-center gap-1 mt-0.5"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View published
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${SUB_STATUS_COLORS[sub.status]}`}
+                  >
+                    {sub.status}
+                  </span>
+                  {sub.status === 'submitted' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmId(sub.id)}
+                    >
+                      Confirm Published
+                    </Button>
+                  )}
+                  {(sub.status === 'submitted' || sub.status === 'published') && (
+                    <Select
+                      onValueChange={(v) =>
+                        statusMutation.mutate({ id: sub.id, status: v as IObituarySubmission['status'] })
+                      }
+                    >
+                      <SelectTrigger className="h-7 text-xs w-24">
+                        <SelectValue placeholder="Update..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="cancelled">Cancel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Submit dialog */}
+      <Dialog open={submitOpen} onOpenChange={setSubmitOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Submit to Outlet</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="pub-outlet">Outlet Name</Label>
+              <Input
+                id="pub-outlet"
+                placeholder="e.g. Columbus Dispatch"
+                value={outlet}
+                onChange={(e) => setOutlet(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pub-contact">Contact Name</Label>
+              <Input
+                id="pub-contact"
+                placeholder="Optional"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pub-email">Contact Email</Label>
+              <Input
+                id="pub-email"
+                type="email"
+                placeholder="Optional"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pub-notes">Notes</Label>
+              <Input
+                id="pub-notes"
+                placeholder="Optional"
+                value={submitNotes}
+                onChange={(e) => setSubmitNotes(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => submitMutation.mutate()}
+              disabled={!outlet || submitMutation.isPending}
+              className="w-full"
+            >
+              {submitMutation.isPending ? 'Submitting...' : 'Submit'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm published dialog */}
+      <Dialog open={!!confirmId} onOpenChange={(v) => { if (!v) { setConfirmId(null); setPublishedUrl(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Published</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="pub-url">Published URL</Label>
+              <Input
+                id="pub-url"
+                type="url"
+                placeholder="https://..."
+                value={publishedUrl}
+                onChange={(e) => setPublishedUrl(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => confirmMutation.mutate()}
+              disabled={confirmMutation.isPending}
+              className="w-full"
+            >
+              {confirmMutation.isPending ? 'Saving...' : 'Mark as Published'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+const OBT_TABS = ['Obituary', 'Publishing'] as const;
+type ObtTab = (typeof OBT_TABS)[number];
+
 export default function CaseObituaryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const [activeTab, setActiveTab] = useState<ObtTab>('Obituary');
+
   return (
     <div>
       <CaseWorkspaceTabs caseId={id} />
-      <div className="mt-4">
-        <ObituaryEditor caseId={id} />
+      <div className="flex border-b mb-6">
+        {OBT_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              'px-4 py-2 text-sm border-b-2 transition-colors',
+              activeTab === tab
+                ? 'border-primary text-primary font-medium'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
+      {activeTab === 'Obituary' ? (
+        <ObituaryEditor caseId={id} />
+      ) : (
+        <PublishingTab caseId={id} />
+      )}
     </div>
   );
 }

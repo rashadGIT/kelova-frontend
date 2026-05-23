@@ -32,6 +32,8 @@ const overflowTabs = [
   { label: 'Photos', href: '/photos' },
   { label: 'Tracking', href: '/tracking' },
   { label: 'Accommodations', href: '/accommodations' },
+  { label: 'Arrangement', href: '/arrangement' },
+  { label: 'Veteran Benefits', href: '/veteran-benefits' },
 ];
 
 export function CaseWorkspaceTabs({ caseId }: { caseId: string }) {

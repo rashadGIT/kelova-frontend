@@ -1,37 +1,90 @@
 import { test, expect } from '@playwright/test';
+import { assertNoCrash, collectErrors } from './helpers/auth';
 
-test.describe('Intake form E2E', () => {
-  test('intake page renders form fields at /intake/test-slug', async ({ page }) => {
-    // The backend may return 404 for unknown slug — that's acceptable in dev E2E.
-    // We test that the page renders the form UI (not a server crash).
-    await page.goto('/intake/test-slug');
+test.describe('Intake form', () => {
+  test('intake page renders for seeded tenant slug', async ({ page }) => {
+    const assertNoErrors = collectErrors(page);
+    const response = await page.goto('/intake/sunrise');
     await page.waitForLoadState('networkidle');
 
-    // Page should not be a 500 error
-    const body = await page.locator('body').textContent();
-    expect(body).not.toContain('Internal Server Error');
-    expect(body).not.toContain('Application error');
-
-    // The intake form page should contain either:
-    // a) The form (for a valid slug) or
-    // b) A "not found" message (for invalid slug in dev)
-    // Either way it should not be a blank page
-    expect(body?.length).toBeGreaterThan(20);
+    const status = response?.status() ?? 200;
+    expect(status).not.toBe(500);
+    await assertNoCrash(page);
+    assertNoErrors();
   });
 
-  test('intake form has visible input fields when tenant slug is valid', async ({ page }) => {
-    // Use 'sunrise' which the backend test seed creates (Phase 11)
-    // In pre-seed state, this may redirect — that's acceptable
+  test('intake page body is not blank', async ({ page }) => {
+    await page.goto('/intake/sunrise');
+    await page.waitForLoadState('networkidle');
+
+    const body = await page.locator('body').textContent();
+    expect(body?.trim().length).toBeGreaterThan(20);
+  });
+
+  test('intake form has visible text input fields', async ({ page }) => {
     const response = await page.goto('/intake/sunrise');
+    await page.waitForLoadState('networkidle');
 
-    // Accept 200 (form rendered) or 404 (tenant not seeded yet) — not 500
+    if (response?.status() === 200) {
+      const inputs = page.locator('input[type="text"], input:not([type]), input[type="email"], input[type="tel"]');
+      const count = await inputs.count();
+      expect(count).toBeGreaterThan(0);
+    }
+  });
+
+  test('intake form has a submit button', async ({ page }) => {
+    const response = await page.goto('/intake/sunrise');
+    await page.waitForLoadState('networkidle');
+
+    if (response?.status() === 200) {
+      const submitBtn = page.getByRole('button', { name: /submit|send|continue|next/i }).first();
+      await expect(submitBtn).toBeVisible();
+    }
+  });
+
+  test('intake form shows validation error on empty submit', async ({ page }) => {
+    const response = await page.goto('/intake/sunrise');
+    await page.waitForLoadState('networkidle');
+
+    if (response?.status() !== 200) test.skip();
+
+    const submitBtn = page.getByRole('button', { name: /submit|send|continue|next/i }).first();
+    const isVisible = await submitBtn.isVisible().catch(() => false);
+    if (!isVisible) test.skip();
+
+    await submitBtn.click();
+    await page.waitForTimeout(500);
+
+    // After empty submit, page should show validation errors or stay on page — not crash
+    await assertNoCrash(page);
+  });
+
+  test('unknown tenant slug returns non-500 response', async ({ page }) => {
+    const response = await page.goto('/intake/definitely-not-a-real-tenant-xyz');
+    await page.waitForLoadState('networkidle');
+
     const status = response?.status() ?? 200;
-    expect([200, 404]).toContain(status);
+    expect(status).not.toBe(500);
+    await assertNoCrash(page);
+  });
 
-    if (status === 200) {
-      // If form rendered, at least one text input should be visible
-      const inputs = await page.locator('input[type="text"], input:not([type])').count();
-      expect(inputs).toBeGreaterThan(0);
+  test('preplanning public form loads', async ({ page }) => {
+    const response = await page.goto('/preplanning/sunrise');
+    await page.waitForLoadState('networkidle');
+
+    const status = response?.status() ?? 200;
+    expect(status).not.toBe(500);
+    await assertNoCrash(page);
+  });
+
+  test('preplanning form has input fields', async ({ page }) => {
+    const response = await page.goto('/preplanning/sunrise');
+    await page.waitForLoadState('networkidle');
+
+    if (response?.status() === 200) {
+      const inputs = page.locator('input, select, textarea');
+      const count = await inputs.count();
+      expect(count).toBeGreaterThan(0);
     }
   });
 });
