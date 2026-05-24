@@ -41,7 +41,7 @@ function MemorialManager({ caseId }: { caseId: string }) {
     resolver: zodResolver(memorialSchema),
     defaultValues: {
       bioText: memorial?.bioText ?? '',
-      photoUrls: memorial?.photoUrls.join('\n') ?? '',
+      photoUrls: memorial?.photoUrls?.join('\n') ?? '',
     },
   });
 
