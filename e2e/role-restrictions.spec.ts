@@ -83,7 +83,7 @@ test.describe('Role restrictions — staff', () => {
     // that may return 403 for staff and trigger React Query retries, stalling networkidle.
     await page.goto('/settings/api', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000);
-    const body = await page.locator('body').textContent().catch(() => '');
+    const body = (await page.locator('body').textContent().catch(() => '')) ?? '';
     expect(body.toLowerCase()).not.toContain('internal server error');
     await snap(page, 'settings-api-staff');
   });
@@ -191,6 +191,10 @@ test.describe('Role access — super_admin', () => {
 test.describe('Auth — bad/no data', () => {
   const BACKEND = 'http://localhost:3001';
   const DIRECTOR = 'director@sunrise.demo';
+
+  test.beforeEach(async ({ page }) => {
+    await requireBackend(page);
+  });
 
   test('GET /cases with no auth falls back to super_admin (documents dev guard gap)', async ({ request }) => {
     // CognitoAuthGuard defaults to 'rashad.barnett@gmail.com' when DEV_AUTH_BYPASS=true
