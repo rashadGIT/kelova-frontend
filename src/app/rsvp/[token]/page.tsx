@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function RsvpPage({ params }: { params: { token: string } }) {
+export default function RsvpPage() {
   const [attending, setAttending] = useState<'yes' | 'no' | null>(null);
   const [submitted, setSubmitted] = useState(false);
 

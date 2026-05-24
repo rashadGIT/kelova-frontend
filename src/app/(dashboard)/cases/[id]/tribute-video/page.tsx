@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +16,11 @@ function statusBadge(status: string) {
   return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
 }
 
-export default function TributeVideoPage({ params }: { params: { id: string } }) {
+export default function TributeVideoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data: videoStatus, isLoading } = useQuery({
-    queryKey: ['tribute-video', params.id],
-    queryFn: () => getTributeVideoStatus(params.id),
+    queryKey: ['tribute-video', id],
+    queryFn: () => getTributeVideoStatus(id),
   });
 
   return (

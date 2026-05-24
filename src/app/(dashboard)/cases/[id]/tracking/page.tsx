@@ -134,7 +134,7 @@ function TrackingTab({ caseId }: { caseId: string }) {
             ) : null
           ) : (
             <p className="text-sm text-muted-foreground">
-              Display and print this QR code to attach to the decedent's transfer bag or container.
+              Display and print this QR code to attach to the decedent&apos;s transfer bag or container.
             </p>
           )}
         </CardContent>

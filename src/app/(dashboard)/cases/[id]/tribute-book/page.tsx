@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-export default function TributeBookPage({ params }: { params: { id: string } }) {
+export default function TributeBookPage() {
   const [includeCondolences, setIncludeCondolences] = useState(true);
   const [includeGuestbook, setIncludeGuestbook] = useState(true);
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,10 +24,11 @@ function statusColor(s: InsuranceStatus, current: InsuranceStatus) {
 const usd = (v: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
-export default function InsurancePage({ params }: { params: { id: string } }) {
+export default function InsurancePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data: insurance, isLoading } = useQuery({
-    queryKey: ['insurance', params.id],
-    queryFn: () => getInsurance(params.id),
+    queryKey: ['insurance', id],
+    queryFn: () => getInsurance(id),
   });
 
   return (

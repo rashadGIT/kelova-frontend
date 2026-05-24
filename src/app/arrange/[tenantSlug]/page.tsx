@@ -20,7 +20,7 @@ const PACKAGES = [
   { id: 'celebration', label: 'Celebration of Life', price: '$7,995', description: 'Full tribute with personalization' },
 ];
 
-export default function ArrangePage({ params }: { params: { tenantSlug: string } }) {
+export default function ArrangePage() {
   const [step, setStep] = useState(1);
   const [serviceType, setServiceType] = useState<string | null>(null);
   const [packageId, setPackageId] = useState<string | null>(null);

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function CheckInPage({ params }: { params: { token: string } }) {
+export default function CheckInPage() {
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) {

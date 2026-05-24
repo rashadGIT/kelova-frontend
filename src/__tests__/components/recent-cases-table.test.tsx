@@ -132,7 +132,7 @@ describe('RecentCasesTable', () => {
     mockGetRecentCases.mockResolvedValue([]);
 
     const savedWindow = global.window;
-    // @ts-ignore
+    // @ts-expect-error -- simulate SSR by deleting window
     delete global.window;
 
     renderWithQuery(<RecentCasesTable />);
@@ -141,7 +141,7 @@ describe('RecentCasesTable', () => {
       expect(screen.getByRole('button', { name: /copy intake link/i })).toBeInTheDocument();
     });
 
-    // @ts-ignore
+    // @ts-expect-error -- restore window after SSR simulation
     global.window = savedWindow;
   });
 

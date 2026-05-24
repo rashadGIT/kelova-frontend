@@ -6,7 +6,6 @@ import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,

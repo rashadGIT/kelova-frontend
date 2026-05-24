@@ -110,7 +110,7 @@ function AccommodationsContent({ caseId }: { caseId: string }) {
         <CardContent className="space-y-4">
           {hotels.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No hotels added yet. Click "Add Hotel" to start.
+              No hotels added yet. Click &quot;Add Hotel&quot; to start.
             </p>
           )}
           {hotels.map((hotel, i) => (

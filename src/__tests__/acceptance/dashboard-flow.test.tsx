@@ -41,6 +41,7 @@ jest.mock('sonner', () => ({
 import { useRouter } from 'next/navigation';
 import { getDashboardStats, getRecentCases } from '@/lib/api/dashboard';
 import { getRevenueReport } from '@/lib/api/revenue';
+import { useAuthStore } from '@/lib/store/auth.store';
 import { apiClient } from '@/lib/api/client';
 import DashboardPage from '@/app/(dashboard)/page';
 
@@ -245,12 +246,10 @@ describe('Acceptance: Dashboard page', () => {
 describe('Acceptance: Dashboard page — staff user', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useAuthStore } = require('@/lib/store/auth.store');
-    useAuthStore.mockImplementation((selector: (s: { user: { role: string } | null }) => unknown) =>
+    (useAuthStore as jest.Mock).mockImplementation((selector: (s: { user: { role: string } | null }) => unknown) =>
       selector({ user: { role: 'staff' } }),
     );
 
-    const { apiClient } = require('@/lib/api/client');
     (apiClient.get as jest.Mock).mockResolvedValue({ data: [] });
   });
 

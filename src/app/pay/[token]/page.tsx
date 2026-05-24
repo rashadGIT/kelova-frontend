@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function PayPage({ params }: { params: { token: string } }) {
+export default function PayPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) {
@@ -26,7 +27,7 @@ export default function PayPage({ params }: { params: { token: string } }) {
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-1">
           <h1 className="text-2xl font-semibold">Complete Your Payment</h1>
-          <p className="text-muted-foreground text-sm">Reference: {params.token}</p>
+          <p className="text-muted-foreground text-sm">Reference: {token}</p>
         </div>
 
         <Card>

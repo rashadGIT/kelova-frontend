@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getShowroomProducts } from '@/lib/api/case-extras';
 
-export default function ShowroomPage({ params }: { params: { id: string } }) {
+export default function ShowroomPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const { data: products, isLoading } = useQuery({

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getStationeryTemplates } from '@/lib/api/case-extras';
 
-export default function StationeryPage({ params }: { params: { id: string } }) {
+export default function StationeryPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   const { data: templates, isLoading } = useQuery({

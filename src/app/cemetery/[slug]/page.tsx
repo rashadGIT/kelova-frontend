@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,8 @@ function plotColor(status: string) {
   return 'bg-yellow-100 border-yellow-300 text-yellow-800';
 }
 
-export default function CemeteryPublicPage({ params }: { params: { slug: string } }) {
+export default function CemeteryPublicPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [searchName, setSearchName] = useState('');
   const [visitSubmitted, setVisitSubmitted] = useState(false);
 
@@ -30,7 +31,7 @@ export default function CemeteryPublicPage({ params }: { params: { slug: string 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
         <div className="text-center space-y-1">
           <h1 className="text-3xl font-semibold">Everlasting Gardens Cemetery</h1>
-          <p className="text-muted-foreground">{params.slug}</p>
+          <p className="text-muted-foreground">{slug}</p>
         </div>
 
         <Tabs defaultValue="browse">

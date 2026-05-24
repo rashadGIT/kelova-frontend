@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,15 +20,16 @@ import { getGraveCareServices, getGraveCareOrders } from '@/lib/api/case-extras'
 const usd = (v: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
-export default function GraveCarePage({ params }: { params: { id: string } }) {
+export default function GraveCarePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data: services, isLoading: servicesLoading } = useQuery({
     queryKey: ['grave-care-services'],
     queryFn: getGraveCareServices,
   });
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['grave-care-orders', params.id],
-    queryFn: () => getGraveCareOrders(params.id),
+    queryKey: ['grave-care-orders', id],
+    queryFn: () => getGraveCareOrders(id),
   });
 
   return (
