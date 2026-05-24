@@ -1,79 +1,81 @@
 import { test, expect } from '@playwright/test';
+import { injectDevUser, assertNoCrash, collectErrors, getFirstCaseId } from './helpers/auth';
 
 test.describe('Payment flow', () => {
-  test('payments page renders for a placeholder case', async ({ page }) => {
-    const response = await page.goto('/cases/demo-case-id/payments');
+  let firstCaseId: string | null = null;
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await injectDevUser(page);
+    firstCaseId = await getFirstCaseId(page);
+    await page.close();
+  });
+
+  test('payments page renders for seeded case', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    const assertNoErrors = collectErrors(page);
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/payments`);
     await page.waitForLoadState('networkidle');
 
-    const status = response?.status() ?? 200;
-    expect(status).not.toBe(500);
+    await assertNoCrash(page);
+    assertNoErrors();
+  });
+
+  test('payments page contains financial vocabulary', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/payments`);
+    await page.waitForLoadState('networkidle');
 
     const body = await page.locator('body').textContent();
-    expect(body).not.toContain('Application error');
-    expect(body?.trim().length).toBeGreaterThan(10);
+    expect(/payment|balance|amount|invoice|total|\$/i.test(body ?? '')).toBe(true);
   });
 
-  test('payments page contains a payment-related heading or label', async ({ page }) => {
-    await page.goto('/cases/demo-case-id/payments');
+  test('payment form or record button is accessible', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/payments`);
     await page.waitForLoadState('networkidle');
 
-    const bodyText = await page.locator('body').textContent();
-    // Should contain "payment", "balance", or "amount" somewhere on the page
-    const hasPaymentContent =
-      /payment|balance|amount|invoice|total/i.test(bodyText ?? '');
-
-    // Either content is shown or a loading/not-found state is shown — never a blank crash
-    expect(bodyText?.trim().length).toBeGreaterThan(10);
-    // If page loaded successfully (not a 404 redirect) expect payment vocabulary
-    const url = page.url();
-    if (url.includes('/payments')) {
-      expect(hasPaymentContent).toBe(true);
-    }
-  });
-
-  test('revenue report page loads on dashboard', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Dashboard should show revenue-related content
-    const bodyText = await page.locator('body').textContent();
-    const hasFinancialContent = /revenue|cases|balance|\$/i.test(bodyText ?? '');
-    expect(hasFinancialContent).toBe(true);
-  });
-
-  test('payment form inputs are accessible when rendered', async ({ page }) => {
-    await page.goto('/cases/demo-case-id/payments');
-    await page.waitForLoadState('networkidle');
-
-    // If a "Record Payment" or similar button exists, it should be focusable
-    const payButton = page
-      .getByRole('button', { name: /payment|record|add/i })
+    const payBtn = page
+      .getByRole('button', { name: /record|payment|add|pay/i })
       .or(page.getByRole('link', { name: /payment/i }))
       .first();
 
-    const isVisible = await payButton.isVisible().catch(() => false);
+    const isVisible = await payBtn.isVisible().catch(() => false);
     if (isVisible) {
-      // Tab to button — confirm it's keyboard-reachable
-      await payButton.focus();
-      const focused = await payButton.evaluate((el) => el === document.activeElement);
+      await payBtn.focus();
+      const focused = await payBtn.evaluate((el) => el === document.activeElement);
       expect(focused).toBe(true);
     }
+    await assertNoCrash(page);
+  });
 
-    // No crash regardless
+  test('payment plans tab loads without crash', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/payment-plans`);
+    await page.waitForLoadState('networkidle');
+    await assertNoCrash(page);
+  });
+
+  test('dashboard shows revenue-related content', async ({ page }) => {
+    await injectDevUser(page);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
     const body = await page.locator('body').textContent();
-    expect(body).not.toContain('Application error');
+    const hasContent = /revenue|case|task|\$/i.test(body ?? '');
+    expect(hasContent).toBe(true);
   });
 
   test('payments page does not throw unhandled JS errors', async ({ page }) => {
-    const jsErrors: string[] = [];
-    page.on('pageerror', (err) => jsErrors.push(err.message));
-
-    await page.goto('/cases/demo-case-id/payments');
+    if (!firstCaseId) test.skip();
+    const assertNoErrors = collectErrors(page);
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/payments`);
     await page.waitForLoadState('networkidle');
-
-    const criticalErrors = jsErrors.filter(
-      (e) => !e.includes('hydration') && !e.includes('Warning'),
-    );
-    expect(criticalErrors).toHaveLength(0);
+    assertNoErrors();
   });
 });

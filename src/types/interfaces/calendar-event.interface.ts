@@ -10,6 +10,9 @@ export interface ICalendarEvent {
   startTime: string;
   endTime: string;
   notes: string | null;
+  streamingEnabled: boolean;
+  streamingUrl: string | null;
+  streamingPassword: string | null;
   createdAt: string;
   updatedAt: string;
 }

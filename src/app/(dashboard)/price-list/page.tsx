@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, ShieldCheck, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { getPriceList, createPriceListItem, deletePriceListItem } from '@/lib/api/price-list';
 import { apiClient } from '@/lib/api/client';
+import { ExternalLink } from 'lucide-react';
 import { PriceCategory } from '@/types';
 
 const categoryLabel: Record<PriceCategory, string> = {
@@ -36,6 +37,10 @@ export default function PriceListPage() {
   const [category, setCategory] = useState<PriceCategory>(PriceCategory.professional_services);
 
   const { data: items = [], isLoading } = useQuery({ queryKey: ['price-list'], queryFn: getPriceList });
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => apiClient.get<{ slug: string }>('/settings').then((r) => r.data),
+  });
 
   const createMutation = useMutation({
     mutationFn: () => createPriceListItem({ name, category, price: parseFloat(price) }),
@@ -52,6 +57,25 @@ export default function PriceListPage() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['price-list'] }); toast.success('Item removed.'); },
   });
 
+  const [complianceResult, setComplianceResult] = useState<{
+    compliant: boolean;
+    missing: string[];
+    warnings: string[];
+  } | null>(null);
+  const [complianceLoading, setComplianceLoading] = useState(false);
+
+  const handleComplianceCheck = async () => {
+    setComplianceLoading(true);
+    try {
+      const res = await apiClient.get<{ compliant: boolean; missing: string[]; warnings: string[] }>('/price-list/compliance');
+      setComplianceResult(res.data);
+    } catch {
+      toast.error('Failed to run compliance check.');
+    } finally {
+      setComplianceLoading(false);
+    }
+  };
+
   // Group by category
   const grouped = Object.values(PriceCategory).reduce<Record<PriceCategory, typeof items>>(
     (acc, cat) => ({ ...acc, [cat]: items.filter((i) => i.category === cat) }),
@@ -65,8 +89,19 @@ export default function PriceListPage() {
         description="FTC General Price List — manage categories and items."
         action={
           <div className="flex items-center gap-2">
+            {settings?.slug && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/p/${settings.slug}/prices`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />View Public Page
+                </a>
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <Link href="/price-list/audit"><ShieldCheck className="h-4 w-4 mr-2" />Compliance Log</Link>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleComplianceCheck} disabled={complianceLoading}>
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              {complianceLoading ? 'Checking...' : 'FTC Check'}
             </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -131,6 +166,50 @@ export default function PriceListPage() {
             </div>
           )
         )
+      )}
+
+      {/* GPL Compliance result panel */}
+      {complianceResult && (
+        <div className={`rounded-md border p-4 space-y-3 ${complianceResult.compliant ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+          <div className="flex items-center gap-2">
+            {complianceResult.compliant ? (
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-600" />
+            )}
+            <p className={`text-sm font-medium ${complianceResult.compliant ? 'text-green-700' : 'text-red-700'}`}>
+              {complianceResult.compliant
+                ? 'Price list meets FTC Funeral Rule requirements.'
+                : `${complianceResult.missing.length} required categor${complianceResult.missing.length === 1 ? 'y' : 'ies'} missing.`}
+            </p>
+          </div>
+          {complianceResult.missing.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-red-700 mb-1">Missing required categories:</p>
+              <ul className="space-y-1">
+                {complianceResult.missing.map((m) => (
+                  <li key={m} className="flex items-center gap-2 text-xs text-red-700">
+                    <XCircle className="h-3.5 w-3.5 shrink-0" />
+                    {m}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {complianceResult.warnings.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-amber-700 mb-1">Warnings:</p>
+              <ul className="space-y-1">
+                {complianceResult.warnings.map((w) => (
+                  <li key={w} className="flex items-center gap-2 text-xs text-amber-700">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

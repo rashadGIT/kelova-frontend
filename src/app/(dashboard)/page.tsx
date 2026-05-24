@@ -40,7 +40,7 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
       <div className="flex items-end gap-1" style={{ height: BAR_HEIGHT_PX }}>
         {slots.map((d) => {
           const [yyyy, mm] = d.month.split('-');
-          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1] ?? mm;
+          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1]!;
           const barHeight = Math.max(Math.round((d.count / maxCount) * BAR_HEIGHT_PX), 4);
           return (
             <div key={d.month} className="flex-1 flex flex-col items-end relative">
@@ -62,7 +62,7 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
       <div className="flex gap-1">
         {slots.map((d, i) => {
           const [yyyy, mm] = d.month.split('-');
-          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1] ?? mm;
+          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1]!;
           const isJan = mm === '01';
           const prevYear = i > 0 ? slots[i - 1].month.split('-')[0] : yyyy;
           const showYear = isJan && yyyy !== prevYear;

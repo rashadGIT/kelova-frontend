@@ -27,3 +27,8 @@ export type { ITask } from './interfaces/task.interface';
 export type { ITenant } from './interfaces/tenant.interface';
 export type { IUser } from './interfaces/user.interface';
 export type { IVendor } from './interfaces/vendor.interface';
+export type { IArrangementConference } from './interfaces/arrangement-conference.interface';
+export type { IVeteranBenefitItem } from './interfaces/veteran-benefit-item.interface';
+export type { IPaymentPlan, IPaymentInstallment } from './interfaces/payment-plan.interface';
+export type { IObituarySubmission } from './interfaces/obituary-submission.interface';
+export type { IMultiLocationSummary, ILocationSummary } from './interfaces/multi-location.interface';

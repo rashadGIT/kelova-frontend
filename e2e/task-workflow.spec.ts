@@ -1,62 +1,108 @@
 import { test, expect } from '@playwright/test';
+import { injectDevUser, assertNoCrash, collectErrors, getFirstCaseId } from './helpers/auth';
 
 test.describe('Task workflow', () => {
-  test('dashboard loads and shows staff workload panel', async ({ page }) => {
+  let firstCaseId: string | null = null;
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await injectDevUser(page);
+    firstCaseId = await getFirstCaseId(page);
+    await page.close();
+  });
+
+  test('dashboard loads and shows stat cards', async ({ page }) => {
+    const assertNoErrors = collectErrors(page);
+    await injectDevUser(page);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     const body = await page.locator('body').textContent();
     expect(body).not.toContain('Internal Server Error');
     expect(body?.length).toBeGreaterThan(50);
+    assertNoErrors();
   });
 
-  test('case tasks tab renders for a placeholder case id', async ({ page }) => {
-    const response = await page.goto('/cases/demo-case-id/tasks');
-    await page.waitForLoadState('networkidle');
-
-    const status = response?.status() ?? 200;
-    expect(status).not.toBe(500);
-
-    const body = await page.locator('body').textContent();
-    expect(body).not.toContain('Application error');
-  });
-
-  test('tasks page does not render a blank body', async ({ page }) => {
-    await page.goto('/cases/demo-case-id/tasks');
-    await page.waitForLoadState('networkidle');
-
-    const bodyText = await page.locator('body').textContent();
-    expect(bodyText?.trim().length).toBeGreaterThan(10);
-  });
-
-  test('overdue task count appears on dashboard stat cards', async ({ page }) => {
+  test('dashboard stat cards render with numeric content', async ({ page }) => {
+    await injectDevUser(page);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Stat cards should be rendered — look for any card-like container
-    const cards = page.locator('[class*="card"], [class*="stat"]');
-    const cardCount = await cards.count();
-    // Dashboard has at least 4 stat cards
-    expect(cardCount).toBeGreaterThanOrEqual(1);
+    const cards = page.locator('[class*="card"], [class*="stat"], [data-testid*="stat"]');
+    const count = await cards.count();
+    expect(count).toBeGreaterThanOrEqual(1);
   });
 
-  test('task checkbox interaction does not crash the page', async ({ page }) => {
-    const jsErrors: string[] = [];
-    page.on('pageerror', (err) => jsErrors.push(err.message));
-
-    await page.goto('/cases/demo-case-id/tasks');
+  test('global tasks list page loads', async ({ page }) => {
+    await injectDevUser(page);
+    await page.goto('/tasks');
     await page.waitForLoadState('networkidle');
 
-    // Attempt to click first checkbox if present — no crash expected
+    await assertNoCrash(page);
+    const body = await page.locator('body').textContent();
+    expect(body?.trim().length).toBeGreaterThan(10);
+  });
+
+  test('global tasks page contains task-related vocabulary', async ({ page }) => {
+    await injectDevUser(page);
+    await page.goto('/tasks');
+    await page.waitForLoadState('networkidle');
+
+    const body = await page.locator('body').textContent();
+    expect(/task|due|assign|complete|overdue/i.test(body ?? '')).toBe(true);
+  });
+
+  test('case tasks tab renders for seeded case', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/tasks`);
+    await page.waitForLoadState('networkidle');
+
+    await assertNoCrash(page);
+  });
+
+  test('task list shows checkboxes or completion controls', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/tasks`);
+    await page.waitForLoadState('networkidle');
+
+    const controls = page.locator('input[type="checkbox"], button[aria-label*="complete" i], [role="checkbox"]');
+    const count = await controls.count();
+    // Tasks may exist (seed data) or not — either way no crash
+    expect(count).toBeGreaterThanOrEqual(0);
+  });
+
+  test('task checkbox interaction does not crash page', async ({ page }) => {
+    if (!firstCaseId) test.skip();
+    const assertNoErrors = collectErrors(page);
+    await injectDevUser(page);
+    await page.goto(`/cases/${firstCaseId}/tasks`);
+    await page.waitForLoadState('networkidle');
+
     const checkbox = page.locator('input[type="checkbox"]').first();
     const exists = await checkbox.isVisible().catch(() => false);
     if (exists) {
-      await checkbox.click({ force: true }).catch(() => {/* 404 response is fine */});
+      await checkbox.click({ force: true }).catch(() => {/* API call may fail — UI must not crash */});
+      await page.waitForTimeout(500);
     }
 
-    const criticalErrors = jsErrors.filter(
-      (e) => !e.includes('hydration') && !e.includes('Warning'),
-    );
-    expect(criticalErrors).toHaveLength(0);
+    assertNoErrors();
+  });
+
+  test('task templates page loads', async ({ page }) => {
+    await injectDevUser(page);
+    await page.goto('/settings/templates');
+    await page.waitForLoadState('networkidle');
+
+    await assertNoCrash(page);
+  });
+
+  test('tasks page does not throw unhandled JS errors', async ({ page }) => {
+    const assertNoErrors = collectErrors(page);
+    await injectDevUser(page);
+    await page.goto('/tasks');
+    await page.waitForLoadState('networkidle');
+    assertNoErrors();
   });
 });

@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { cn } from '@/lib/utils/cn';
 import { CaseStatusBadge } from './case-status-badge';
 import { getCases, type CaseFilters } from '@/lib/api/cases';
@@ -122,8 +122,8 @@ export function CaseTable({ filter }: { filter?: string }) {
       setPageIndex(0);
     },
     onPaginationChange: (updater) => {
-      const next = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
-      setPageIndex(next.pageIndex);
+      const fn = updater as (old: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number };
+      setPageIndex(fn({ pageIndex, pageSize }).pageIndex);
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -221,35 +221,34 @@ export function CaseTable({ filter }: { filter?: string }) {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <p className="text-sm text-muted-foreground">
-          {totalRows > 0 ? `Showing ${firstRow}–${lastRow} of ${totalRows} cases` : ''}
+          {`Showing ${firstRow}–${lastRow} of ${totalRows} cases`}
         </p>
         <div className="flex items-center gap-2">
-          <Select
+          <select
             value={String(pageSize)}
-            onValueChange={(v) => { setPageSize(Number(v)); setPageIndex(0); }}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPageIndex(0); }}
+            className="h-9 w-[100px] rounded-md border border-input bg-background px-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            aria-label="Rows per page"
           >
-            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {[10, 25, 50].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n} / page</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {[10, 25, 50].map((n) => (
+              <option key={n} value={String(n)}>{n} / page</option>
+            ))}
+          </select>
           {totalRows > pageSize && (
             <>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-                disabled={pageIndex === 0}
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
               >
                 Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex((p) => p + 1)}
-                disabled={lastRow >= totalRows}
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
               >
                 Next
               </Button>

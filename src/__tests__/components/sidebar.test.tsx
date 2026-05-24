@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -161,5 +161,22 @@ describe('Sidebar — super_admin Mode B (tenant view)', () => {
     renderWithQuery(<Sidebar />);
     await user.click(screen.getByText('Exit tenant view'));
     expect(mockExit).toHaveBeenCalled();
+  });
+
+  it('calls onClose when Exit is clicked inside MobileSidebarTrigger (sheet)', async () => {
+    const user = userEvent.setup();
+    renderWithQuery(<MobileSidebarTrigger />);
+
+    // Open the sheet
+    await user.click(screen.getByRole('button', { name: /open navigation menu/i }));
+    await screen.findByText('Exit tenant view');
+
+    // Click Exit — this calls handleExit which calls onClose?.()
+    await user.click(screen.getByText('Exit tenant view'));
+
+    // Sheet should close: "Exit tenant view" is no longer visible
+    await waitFor(() => {
+      expect(screen.queryByText('Exit tenant view')).not.toBeInTheDocument();
+    });
   });
 });

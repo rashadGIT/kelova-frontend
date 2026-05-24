@@ -12,8 +12,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get('host') ?? '';
 
-  // Auth gate: redirect unauthenticated users before the page renders
-  if (!isPublicPath(pathname)) {
+  // Auth gate: redirect unauthenticated users before the page renders.
+  // Skipped when NEXT_PUBLIC_DEV_AUTH_BYPASS=true (local dev / E2E tests only).
+  if (!isPublicPath(pathname) && process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS !== 'true') {
     const token = request.cookies.get('access_token');
     if (!token) {
       const loginUrl = request.nextUrl.clone();
@@ -43,5 +44,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|sw\\.js|manifest\\.json|offline\\.html|icons/|api/).*)'],
 };

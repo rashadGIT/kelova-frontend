@@ -12,8 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getCalendarEvents, createCalendarEvent } from '@/lib/api/calendar';
+import { Plus, ChevronLeft, ChevronRight, Video, Copy } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { getCalendarEvents, createCalendarEvent, updateEventStreaming } from '@/lib/api/calendar';
 import type { ICalendarEvent } from '@/types';
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -143,6 +144,101 @@ function NewEventDialog({ onCreated, defaultDate }: NewEventDialogProps) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── StreamingPanel ───────────────────────────────────────────────────────────
+
+function StreamingPanel({ event }: { event: ICalendarEvent }) {
+  const queryClient = useQueryClient();
+  const [enabled, setEnabled] = useState(event.streamingEnabled);
+  const [url, setUrl] = useState(event.streamingUrl ?? '');
+  const [password, setPassword] = useState(event.streamingPassword ?? '');
+  const [editing, setEditing] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      updateEventStreaming(event.id, {
+        streamingEnabled: enabled,
+        streamingUrl: url || undefined,
+        streamingPassword: password || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      toast.success('Streaming settings saved.');
+      setEditing(false);
+    },
+    onError: () => toast.error('Failed to save streaming settings.'),
+  });
+
+  return (
+    <div className="mt-3 rounded-md border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Video className="h-4 w-4 text-muted-foreground" />
+          Livestreaming
+        </div>
+        <Switch
+          checked={enabled}
+          onCheckedChange={(v: boolean) => { setEnabled(v); setEditing(true); }}
+        />
+      </div>
+
+      {enabled && (
+        <div className="space-y-2">
+          <div>
+            <Label className="text-xs text-muted-foreground">Stream URL</Label>
+            <div className="flex gap-2 mt-0.5">
+              <Input
+                value={url}
+                onChange={(e) => { setUrl(e.target.value); setEditing(true); }}
+                placeholder="https://youtube.com/live/..."
+                className="text-sm h-8"
+              />
+              {url && (
+                <Button
+                  variant="ghost" size="icon" className="h-8 w-8 shrink-0"
+                  onClick={() => { navigator.clipboard.writeText(url); toast.success('Link copied.'); }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Password (optional)</Label>
+            <Input
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setEditing(true); }}
+              placeholder="Stream password"
+              className="text-sm h-8 mt-0.5"
+            />
+          </div>
+        </div>
+      )}
+
+      {editing && (
+        <Button
+          size="sm" className="w-full"
+          disabled={mutation.isPending}
+          onClick={() => mutation.mutate()}
+        >
+          {mutation.isPending ? 'Saving…' : 'Save Streaming Settings'}
+        </Button>
+      )}
+
+      {!editing && enabled && url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+        >
+          <Video className="h-3 w-3" />
+          Watch Live
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -353,6 +449,7 @@ export default function CalendarPage() {
                       {event.notes && (
                         <p className="text-xs text-muted-foreground mt-1">{event.notes}</p>
                       )}
+                      <StreamingPanel event={event} />
                     </div>
                   </div>
                 );

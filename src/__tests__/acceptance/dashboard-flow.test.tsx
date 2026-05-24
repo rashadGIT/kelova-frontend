@@ -9,6 +9,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+jest.mock('@/lib/store/auth.store', () => ({
+  useAuthStore: jest.fn((selector: (s: { user: { role: string } | null }) => unknown) =>
+    selector({ user: null }),
+  ),
+}));
+
 jest.mock('@/lib/api/dashboard', () => ({
   getDashboardStats: jest.fn(),
   getRecentCases: jest.fn(),
@@ -35,6 +41,7 @@ jest.mock('sonner', () => ({
 import { useRouter } from 'next/navigation';
 import { getDashboardStats, getRecentCases } from '@/lib/api/dashboard';
 import { getRevenueReport } from '@/lib/api/revenue';
+import { useAuthStore } from '@/lib/store/auth.store';
 import { apiClient } from '@/lib/api/client';
 import DashboardPage from '@/app/(dashboard)/page';
 
@@ -195,5 +202,62 @@ describe('Acceptance: Dashboard page', () => {
     const destructiveSpans = document.querySelectorAll('.text-destructive');
     expect(destructiveSpans.length).toBeGreaterThan(0);
     expect(destructiveSpans[0].textContent).toBe('1');
+  });
+
+  it('shows "—" for pending balance when revenue query fails', async () => {
+    mockGetRevenueReport.mockRejectedValue(new Error('Network error'));
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('—')).toBeInTheDocument();
+    });
+  });
+
+  it('renders bar chart with count labels when casesByMonth has entries with count > 0', async () => {
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    mockGetRevenueReport.mockResolvedValue({
+      ...mockRevenue,
+      casesByMonth: [{ month: thisMonth, count: 3, revenue: 9000 }],
+    });
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('shows "—" for avg case value when service type has count 0', async () => {
+    mockGetRevenueReport.mockResolvedValue({
+      ...mockRevenue,
+      revenueByServiceType: [
+        { serviceType: 'direct', count: 0, revenue: 0 },
+      ],
+    });
+    renderWithQuery(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('direct')).toBeInTheDocument();
+    });
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('Acceptance: Dashboard page — staff user', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useAuthStore as unknown as jest.Mock).mockImplementation((selector: (s: { user: { role: string } | null }) => unknown) =>
+      selector({ user: { role: 'staff' } }),
+    );
+
+    (apiClient.get as jest.Mock).mockResolvedValue({ data: [] });
+  });
+
+  it('renders StaffDashboard when user role is staff', async () => {
+    renderWithQuery(<DashboardPage />);
+    // StaffDashboard renders a "Dashboard" heading via PageHeader
+    await waitFor(() => {
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    });
   });
 });
