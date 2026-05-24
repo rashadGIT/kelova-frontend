@@ -246,7 +246,7 @@ describe('Acceptance: Dashboard page', () => {
 describe('Acceptance: Dashboard page — staff user', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useAuthStore as jest.Mock).mockImplementation((selector: (s: { user: { role: string } | null }) => unknown) =>
+    (useAuthStore as unknown as jest.Mock).mockImplementation((selector: (s: { user: { role: string } | null }) => unknown) =>
       selector({ user: { role: 'staff' } }),
     );
 

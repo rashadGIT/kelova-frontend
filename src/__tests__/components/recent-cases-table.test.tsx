@@ -141,7 +141,6 @@ describe('RecentCasesTable', () => {
       expect(screen.getByRole('button', { name: /copy intake link/i })).toBeInTheDocument();
     });
 
-    // @ts-expect-error -- restore window after SSR simulation
     global.window = savedWindow;
   });
 
