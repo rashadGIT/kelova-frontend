@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CaseStatusBadge } from './case-status-badge';
 import { getCaseById, updateCaseStatus } from '@/lib/api/cases';
 import { formatDate } from '@/lib/utils/format-date';
-import { CaseStatus, ServiceType } from '@/types';
+import { CaseStatus, ServiceType, type ICase } from '@/types';
 
 const nextStatus: Partial<Record<CaseStatus, CaseStatus>> = {
   [CaseStatus.new]: CaseStatus.in_progress,
@@ -23,12 +23,13 @@ const serviceTypeLabel: Record<ServiceType, string> = {
   [ServiceType.memorial]: 'Memorial',
 };
 
-export function CaseOverview({ caseId }: { caseId: string }) {
+export function CaseOverview({ caseId, initialData }: { caseId: string; initialData?: ICase }) {
   const queryClient = useQueryClient();
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['case', caseId],
     queryFn: () => getCaseById(caseId),
+    initialData,
   });
 
   const statusMutation = useMutation({

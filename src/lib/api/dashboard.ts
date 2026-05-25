@@ -25,6 +25,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getRecentCases(): Promise<RecentCase[]> {
-  const res = await apiClient.get<RecentCase[]>('/cases');
-  return res.data;
+  const res = await apiClient.get<{ data: RecentCase[] }>('/cases', { params: { limit: 5, sortBy: 'updatedAt', sortOrder: 'desc' } });
+  return res.data.data;
 }

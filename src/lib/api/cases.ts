@@ -17,11 +17,20 @@ export interface CaseFilters {
   serviceType?: ServiceType;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
   dashboardFilter?: 'active' | 'overdue' | 'this-month' | 'pending-signatures';
 }
 
-export async function getCases(filters?: CaseFilters): Promise<ICase[]> {
-  const res = await apiClient.get<ICase[]>('/cases', { params: filters });
+export interface CasesPage {
+  data: ICase[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export async function getCases(filters?: CaseFilters): Promise<CasesPage> {
+  const res = await apiClient.get<CasesPage>('/cases', { params: filters });
   return res.data;
 }
 

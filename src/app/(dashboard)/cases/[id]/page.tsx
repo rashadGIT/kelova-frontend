@@ -17,7 +17,7 @@ export default async function CaseWorkspacePage({ params }: { params: Promise<{ 
       </div>
       <CaseWorkspaceTabs caseId={id} caseName={title} />
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-        <CaseOverview caseId={id} />
+        <CaseOverview caseId={id} initialData={caseData ?? undefined} />
       </Suspense>
     </div>
   );

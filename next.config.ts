@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     typedRoutes: false,
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
