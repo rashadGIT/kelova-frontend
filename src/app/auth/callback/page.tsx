@@ -86,6 +86,7 @@ function AuthCallbackInner() {
         window.location.href = profile.role === 'super_admin' ? '/super-admin/tenants' : '/';
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        // eslint-disable-next-line no-console
         console.error('[callback] exchange error:', msg);
         setError(msg);
       }

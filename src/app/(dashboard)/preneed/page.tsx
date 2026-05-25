@@ -345,65 +345,82 @@ export default function PreNeedPage() {
       ) : arrangements.length === 0 ? (
         <p className="text-sm text-muted-foreground">No arrangements found.</p>
       ) : (
-        <div className="rounded-md border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">Client Name</th>
-                <th className="px-4 py-3 text-left font-medium">DOB</th>
-                <th className="px-4 py-3 text-left font-medium">Service Type</th>
-                <th className="px-4 py-3 text-left font-medium">Funding Type</th>
-                <th className="px-4 py-3 text-left font-medium">Policy #</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {arrangements.map((a) => (
-                <tr key={a.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">
-                    {a.firstName} {a.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {a.dob ? formatDate(a.dob) : '—'}
-                  </td>
-                  <td className="px-4 py-3 capitalize">{a.serviceType}</td>
-                  <td className="px-4 py-3">{a.fundingType}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.policyNumber ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_BADGE[a.status]}`}
-                    >
-                      {a.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {a.status === 'active' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs"
-                        onClick={() => setConvertTarget(a)}
-                      >
-                        Convert to Case
-                      </Button>
-                    )}
-                    {a.status === 'converted' && a.convertedCaseId && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 text-xs"
-                        onClick={() => window.location.href = `/cases/${a.convertedCaseId}`}
-                      >
-                        View Case
-                      </Button>
-                    )}
-                  </td>
+        <>
+          {/* Mobile: card list */}
+          <div className="md:hidden rounded-md border divide-y">
+            {arrangements.map((a) => (
+              <div key={a.id} className="px-4 py-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium text-sm">{a.firstName} {a.lastName}</p>
+                  <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_BADGE[a.status]}`}>
+                    {a.status}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  {a.dob && <span>DOB: {formatDate(a.dob)}</span>}
+                  <span className="capitalize">{a.serviceType}</span>
+                  <span>{a.fundingType}</span>
+                  {a.policyNumber && <span>Policy: {a.policyNumber}</span>}
+                </div>
+                {a.status === 'active' && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setConvertTarget(a)}>
+                    Convert to Case
+                  </Button>
+                )}
+                {a.status === 'converted' && a.convertedCaseId && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => window.location.href = `/cases/${a.convertedCaseId}`}>
+                    View Case
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block rounded-md border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium">Client Name</th>
+                  <th className="px-4 py-3 text-left font-medium">DOB</th>
+                  <th className="px-4 py-3 text-left font-medium">Service Type</th>
+                  <th className="px-4 py-3 text-left font-medium">Funding Type</th>
+                  <th className="px-4 py-3 text-left font-medium">Policy #</th>
+                  <th className="px-4 py-3 text-left font-medium">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y">
+                {arrangements.map((a) => (
+                  <tr key={a.id} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{a.firstName} {a.lastName}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{a.dob ? formatDate(a.dob) : '—'}</td>
+                    <td className="px-4 py-3 capitalize">{a.serviceType}</td>
+                    <td className="px-4 py-3">{a.fundingType}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{a.policyNumber ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_BADGE[a.status]}`}>
+                        {a.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {a.status === 'active' && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setConvertTarget(a)}>
+                          Convert to Case
+                        </Button>
+                      )}
+                      {a.status === 'converted' && a.convertedCaseId && (
+                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => window.location.href = `/cases/${a.convertedCaseId}`}>
+                          View Case
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
