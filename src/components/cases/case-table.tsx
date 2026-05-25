@@ -9,8 +9,6 @@ import {
   flexRender,
   createColumnHelper,
   type SortingState,
-  getSortedRowModel,
-  getPaginationRowModel,
 } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -102,12 +100,23 @@ export function CaseTable({ filter }: { filter?: string }) {
   const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
 
-  const { data: cases = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['cases', filter],
-    queryFn: () => getCases(buildFilters(filter)),
+  const sortCol = sorting[0];
+  const queryFilters: CaseFilters = {
+    ...buildFilters(filter),
+    page: pageIndex + 1,
+    limit: pageSize,
+    ...(sortCol ? { sortBy: sortCol.id, sortOrder: sortCol.desc ? 'desc' : 'asc' } : {}),
+  };
+
+  const { data: page, isLoading, error, refetch } = useQuery({
+    queryKey: ['cases', filter, pageIndex, pageSize, sortCol?.id, sortCol?.desc],
+    queryFn: () => getCases(queryFilters),
   });
+
+  const cases = page?.data ?? [];
+  const total = page?.total ?? 0;
 
   const columns = filter === 'overdue'
     ? [...baseColumns, overdueColumn]
@@ -117,18 +126,19 @@ export function CaseTable({ filter }: { filter?: string }) {
     data: cases,
     columns,
     state: { sorting, pagination: { pageIndex, pageSize } },
+    manualPagination: true,
+    manualSorting: true,
+    rowCount: total,
     onSortingChange: (updater) => {
       setSorting(updater);
       setPageIndex(0);
     },
     onPaginationChange: (updater) => {
       const fn = updater as (old: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number };
-      setPageIndex(fn({ pageIndex, pageSize }).pageIndex);
+      const next = fn({ pageIndex, pageSize });
+      setPageIndex(next.pageIndex);
     },
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: false,
   });
 
   if (isLoading) {
@@ -163,9 +173,8 @@ export function CaseTable({ filter }: { filter?: string }) {
     );
   }
 
-  const totalRows = cases.length;
   const firstRow = pageIndex * pageSize + 1;
-  const lastRow = Math.min((pageIndex + 1) * pageSize, totalRows);
+  const lastRow = Math.min((pageIndex + 1) * pageSize, total);
 
   return (
     <div className="space-y-3">
@@ -221,7 +230,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <p className="text-sm text-muted-foreground">
-          {`Showing ${firstRow}–${lastRow} of ${totalRows} cases`}
+          {`Showing ${firstRow}–${lastRow} of ${total} cases`}
         </p>
         <div className="flex items-center gap-2">
           <select
@@ -234,7 +243,7 @@ export function CaseTable({ filter }: { filter?: string }) {
               <option key={n} value={String(n)}>{n} / page</option>
             ))}
           </select>
-          {totalRows > pageSize && (
+          {total > pageSize && (
             <>
               <Button
                 variant="outline"

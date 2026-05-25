@@ -15,10 +15,12 @@ import { toast } from 'sonner';
 
 export function RecentCasesTable() {
   const router = useRouter();
-  const { data: cases = [], isLoading } = useQuery({
+  const { data: raw, isLoading } = useQuery({
     queryKey: ['recent-cases'],
     queryFn: getRecentCases,
   });
+  // Guard against stale cache that may still hold the old paginated envelope shape
+  const cases = Array.isArray(raw) ? raw : [];
 
   if (isLoading) {
     return <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>;
@@ -63,7 +65,7 @@ export function RecentCasesTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cases.slice(0, 5).map((c) => (
+          {cases.map((c) => (
             <TableRow
               key={c.id}
               className="cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:bg-muted"
