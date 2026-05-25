@@ -73,10 +73,12 @@ export function useMessagingSocket(userId: string | null | undefined) {
     });
 
     socket.on('connect_error', (err) => {
+      // eslint-disable-next-line no-console
       console.warn('[messaging socket] connect error', err.message);
     });
 
     socket.on('connect', () => {
+      // eslint-disable-next-line no-console
       console.log('[messaging socket] connected', socket.id);
     });
 
@@ -91,6 +93,7 @@ export function useMessagingSocket(userId: string | null | undefined) {
   function sendMessage(conversationId: string, body: string) {
     const sock = socketRef.current ?? globalSocket;
     if (!sock?.connected) {
+      // eslint-disable-next-line no-console
       console.warn('[messaging socket] not connected — cannot send');
       return;
     }

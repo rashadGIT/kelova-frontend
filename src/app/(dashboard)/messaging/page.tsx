@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { MessageSquare } from 'lucide-react';
 import {
   getConversations,
@@ -24,7 +24,6 @@ export default function MessagingPage() {
   const { activeConversationId, setActiveConversation, clearUnread } =
     useMessagingStore();
   const [newModalOpen, setNewModalOpen] = useState(false);
-  const qc = useQueryClient();
 
   const { sendMessage } = useMessagingSocket(user?.id);
 
