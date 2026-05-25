@@ -58,6 +58,11 @@ const mockCases = [
   },
 ];
 
+// Wraps a case array into the server-paginated CasesPage envelope
+function wrapCases(cases: typeof mockCases, total?: number) {
+  return { data: cases, total: total ?? cases.length, page: 1, limit: 25 };
+}
+
 function renderWithQuery(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -73,15 +78,13 @@ describe('CaseTable', () => {
   });
 
   it('renders a loading skeleton while fetching', () => {
-    // Return a promise that never resolves to stay in loading state
     mockGetCases.mockReturnValue(new Promise(() => {}));
     const { container } = renderWithQuery(<CaseTable />);
-    // Skeleton elements should be present
     expect(container.querySelectorAll('.h-12').length).toBeGreaterThan(0);
   });
 
   it('renders table rows from data', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => {
@@ -91,7 +94,7 @@ describe('CaseTable', () => {
   });
 
   it('renders status badges for each row', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => {
@@ -101,7 +104,7 @@ describe('CaseTable', () => {
   });
 
   it('shows empty state when no cases returned', async () => {
-    mockGetCases.mockResolvedValue([]);
+    mockGetCases.mockResolvedValue(wrapCases([]));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => {
@@ -123,7 +126,7 @@ describe('CaseTable', () => {
     const mockPush = jest.fn();
     jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
 
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     const user = userEvent.setup();
     renderWithQuery(<CaseTable />);
 
@@ -134,7 +137,7 @@ describe('CaseTable', () => {
   });
 
   it('adds overdue tasks column when filter is "overdue"', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable filter="overdue" />);
 
     await waitFor(() => {
@@ -143,7 +146,7 @@ describe('CaseTable', () => {
   });
 
   it('renders overdue badge for cases with overdueTaskCount > 0', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable filter="overdue" />);
 
     await waitFor(() => {
@@ -153,11 +156,10 @@ describe('CaseTable', () => {
 
   it('renders no overdue badge when overdueTaskCount is undefined', async () => {
     const caseWithoutOverdue = { ...mockCases[0], overdueTaskCount: undefined as unknown as number };
-    mockGetCases.mockResolvedValue([caseWithoutOverdue]);
+    mockGetCases.mockResolvedValue(wrapCases([caseWithoutOverdue]));
     renderWithQuery(<CaseTable filter="overdue" />);
 
     await waitFor(() => screen.getByText('Alice Smith'));
-    // overdueTaskCount ?? 0 → 0 → cell renders null (no badge)
     expect(screen.queryByText(/\d+ overdue/i)).not.toBeInTheDocument();
   });
 
@@ -166,7 +168,7 @@ describe('CaseTable', () => {
       ...mockCases[0],
       assignedTo: { name: 'Jane Director' },
     };
-    mockGetCases.mockResolvedValue([caseWithObject]);
+    mockGetCases.mockResolvedValue(wrapCases([caseWithObject]));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => {
@@ -179,7 +181,7 @@ describe('CaseTable', () => {
       ...mockCases[0],
       assignedTo: { name: null },
     };
-    mockGetCases.mockResolvedValue([caseWithNullName]);
+    mockGetCases.mockResolvedValue(wrapCases([caseWithNullName]));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => screen.getByText('Alice Smith'));
@@ -188,10 +190,9 @@ describe('CaseTable', () => {
 
   it('clicking retry button calls refetch', async () => {
     const user = userEvent.setup();
-    // First call fails, second succeeds (refetch)
     mockGetCases
       .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValue([]);
+      .mockResolvedValue(wrapCases([]));
 
     renderWithQuery(<CaseTable />);
 
@@ -204,14 +205,13 @@ describe('CaseTable', () => {
   });
 
   it('clicking a sort header toggles sorting and resets page to 0', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     const user = userEvent.setup();
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => screen.getByText('Alice Smith'));
     const sortBtn = screen.getByRole('button', { name: /sort by deceased name/i });
     await user.click(sortBtn);
-    // After sort, Alice should still be visible (no crash)
     expect(screen.getByText('Alice Smith')).toBeInTheDocument();
   });
 
@@ -219,7 +219,7 @@ describe('CaseTable', () => {
     const mockPush = jest.fn();
     jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
 
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => screen.getByText('Alice Smith'));
@@ -236,7 +236,7 @@ describe('CaseTable', () => {
     const mockPush = jest.fn();
     jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
 
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => screen.getByText('Alice Smith'));
@@ -249,12 +249,17 @@ describe('CaseTable', () => {
   });
 
   it('shows Next/Previous buttons and navigates pages when rows exceed page size', async () => {
-    const manyCases = Array.from({ length: 11 }, (_, i) => ({
+    // 26 items: page 1 returns 25, page 2 returns 1 — Next/Prev buttons appear when total > pageSize (25)
+    const allCases = Array.from({ length: 26 }, (_, i) => ({
       ...mockCases[0],
       id: `case-${i + 1}`,
       deceasedName: `Person ${i + 1}`,
     }));
-    mockGetCases.mockResolvedValue(manyCases);
+    mockGetCases
+      .mockResolvedValueOnce({ data: allCases.slice(0, 25), total: 26, page: 1, limit: 25 })
+      .mockResolvedValueOnce({ data: [allCases[25]], total: 26, page: 2, limit: 25 })
+      .mockResolvedValueOnce({ data: allCases.slice(0, 25), total: 26, page: 1, limit: 25 });
+
     const user = userEvent.setup();
     renderWithQuery(<CaseTable />);
 
@@ -264,7 +269,7 @@ describe('CaseTable', () => {
     expect(nextBtn).toBeInTheDocument();
     await user.click(nextBtn);
 
-    await waitFor(() => screen.getByText('Person 11'));
+    await waitFor(() => screen.getByText('Person 26'));
     expect(screen.queryByText('Person 1')).not.toBeInTheDocument();
 
     const prevBtn = screen.getByRole('button', { name: /previous/i });
@@ -273,7 +278,7 @@ describe('CaseTable', () => {
   });
 
   it('clicking "Sort by last updated" header triggers sort', async () => {
-    mockGetCases.mockResolvedValue(mockCases);
+    mockGetCases.mockResolvedValue(wrapCases(mockCases));
     const user = userEvent.setup();
     renderWithQuery(<CaseTable />);
 
@@ -284,17 +289,18 @@ describe('CaseTable', () => {
   });
 
   it('changing page size via select resets to page 0', async () => {
+    // Start at 10/page so the select-to-25 triggers a re-fetch showing all 11
     const manyCases = Array.from({ length: 11 }, (_, i) => ({
       ...mockCases[0],
       id: `case-${i + 1}`,
       deceasedName: `Person ${i + 1}`,
     }));
-    mockGetCases.mockResolvedValue(manyCases);
+    mockGetCases.mockResolvedValue({ data: manyCases, total: 11, page: 1, limit: 25 });
+
     const user = userEvent.setup();
     renderWithQuery(<CaseTable />);
 
     await waitFor(() => screen.getByText('Person 1'));
-    // Use native select — all 11 rows appear after switching to 25/page
     await user.selectOptions(screen.getByRole('combobox'), '25');
     await waitFor(() => expect(screen.getByText('Person 11')).toBeInTheDocument());
   });
