@@ -7,6 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getMultiLocationSummary } from '@/lib/api/multi-location';
 
+function shortCurrency(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (value >= 1_000) return `$${Math.round(value / 1_000)}K`;
+  return `$${value}`;
+}
+
 function StatCard({
   label,
   value,
@@ -85,43 +91,40 @@ export default function MultiLocationPage() {
             />
             <StatCard
               label="Total Revenue"
-              value={`$${Number(data.totals.revenueTotal).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+              value={shortCurrency(Number(data.totals.revenueTotal))}
               icon={TrendingUp}
             />
           </div>
 
-          {/* Locations table */}
+          {/* Locations list */}
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
               Locations ({data.locations.length})
             </h2>
-            <div className="rounded-md border divide-y">
+            <div className="space-y-3">
               {data.locations.map((loc) => (
                 <div
                   key={loc.locationId}
-                  className="flex items-center justify-between px-4 py-4"
+                  className="rounded-lg border bg-card px-6 pt-5 pb-5"
                 >
-                  <div>
-                    <p className="text-sm font-medium">{loc.displayName}</p>
-                    <p className="text-xs text-muted-foreground">Tenant: {loc.tenantId}</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-8 text-center">
+                  <p className="text-sm font-semibold">{loc.displayName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 mb-4 truncate">
+                    Tenant: {loc.tenantId}
+                  </p>
+                  <div className="flex items-center gap-8">
                     <div>
-                      <p className="text-xs text-muted-foreground">Active Cases</p>
-                      <p className="text-sm font-semibold">{loc.activeCases}</p>
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1">Active Cases</p>
+                      <p className="text-xl font-semibold">{loc.activeCases}</p>
                     </div>
+                    <div className="w-px h-8 bg-border" />
                     <div>
-                      <p className="text-xs text-muted-foreground">This Month</p>
-                      <p className="text-sm font-semibold">{loc.casesThisMonth}</p>
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1">This Month</p>
+                      <p className="text-xl font-semibold">{loc.casesThisMonth}</p>
                     </div>
+                    <div className="w-px h-8 bg-border" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Revenue</p>
-                      <p className="text-sm font-semibold">
-                        ${Number(loc.revenueTotal).toLocaleString('en-US', {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}
-                      </p>
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1">Revenue</p>
+                      <p className="text-xl font-semibold">{shortCurrency(Number(loc.revenueTotal))}</p>
                     </div>
                   </div>
                 </div>

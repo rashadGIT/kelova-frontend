@@ -90,6 +90,7 @@ export default function LoginPage() {
       window.location.href = `https://${cognitoDomain}/oauth2/authorize?${params}`;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      // eslint-disable-next-line no-console
       console.error('Google sign-in error:', msg);
       setError(msg || 'Google sign-in failed.');
       setGoogleLoading(false);

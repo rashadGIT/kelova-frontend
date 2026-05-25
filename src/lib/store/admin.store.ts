@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AdminState {
   activeTenantId: string | null;
@@ -7,9 +8,14 @@ interface AdminState {
   exitTenantView: () => void;
 }
 
-export const useAdminStore = create<AdminState>()((set) => ({
-  activeTenantId: null,
-  activeTenantName: null,
-  enterTenantView: (id, name) => set({ activeTenantId: id, activeTenantName: name }),
-  exitTenantView: () => set({ activeTenantId: null, activeTenantName: null }),
-}));
+export const useAdminStore = create<AdminState>()(
+  persist(
+    (set) => ({
+      activeTenantId: null,
+      activeTenantName: null,
+      enterTenantView: (id, name) => set({ activeTenantId: id, activeTenantName: name }),
+      exitTenantView: () => set({ activeTenantId: null, activeTenantName: null }),
+    }),
+    { name: 'kelova-admin-store' },
+  ),
+);

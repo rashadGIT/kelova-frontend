@@ -8,7 +8,6 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { CheckCircle, Circle } from 'lucide-react';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -291,7 +290,6 @@ export default function CaseCemeteryPage({
   return (
     <div>
       <CaseWorkspaceTabs caseId={id} />
-      <PageHeader title="Cemetery" description="Interment and burial coordination" />
       <CemeteryForm caseId={id} />
     </div>
   );

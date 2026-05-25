@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,9 +43,9 @@ export default function ShowroomPage() {
                 selectedProductId === p.id ? 'border-primary bg-primary/5' : 'border-muted'
               }`}
             >
-              <div className="h-28 bg-muted rounded-t-lg flex items-center justify-center text-muted-foreground text-xs">
+              <div className="relative h-28 bg-muted rounded-t-lg flex items-center justify-center text-muted-foreground text-xs overflow-hidden">
                 {p.previewImage ? (
-                  <img src={p.previewImage} alt={p.name} className="h-full w-full object-cover rounded-t-lg" />
+                  <Image src={p.previewImage} alt={p.name} fill className="object-cover rounded-t-lg" />
                 ) : (
                   'No preview'
                 )}

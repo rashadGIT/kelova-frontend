@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Plus, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -218,7 +217,6 @@ export default function AccommodationsPage({ params }: { params: Promise<{ id: s
   return (
     <div>
       <CaseWorkspaceTabs caseId={id} />
-      <PageHeader title="Accommodations" />
       <AccommodationsContent caseId={id} />
     </div>
   );

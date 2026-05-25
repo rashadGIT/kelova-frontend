@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { getQBStatus, disconnectQB } from '@/lib/api/integrations';
+import { formatDate } from '@/lib/utils/format-date';
 import { apiClient } from '@/lib/api/client';
 
 function QuickBooksCard() {
@@ -70,7 +71,7 @@ function QuickBooksCard() {
       <CardContent className="space-y-4">
         {status?.connected && status.connectedAt && (
           <p className="text-xs text-muted-foreground">
-            Connected on {new Date(status.connectedAt).toLocaleDateString()}
+            Connected on {formatDate(status.connectedAt)}
           </p>
         )}
 
@@ -112,7 +113,9 @@ export default function IntegrationsPage() {
         </p>
       </div>
 
-      <QuickBooksCard />
+      <Suspense fallback={null}>
+        <QuickBooksCard />
+      </Suspense>
     </div>
   );
 }

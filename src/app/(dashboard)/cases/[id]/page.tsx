@@ -12,8 +12,10 @@ export default async function CaseWorkspacePage({ params }: { params: Promise<{ 
 
   return (
     <div>
-      <PageHeader title={title} description="Case Details" />
-      <CaseWorkspaceTabs caseId={id} />
+      <div className="hidden sm:block">
+        <PageHeader title={title} description="Case Details" />
+      </div>
+      <CaseWorkspaceTabs caseId={id} caseName={title} />
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <CaseOverview caseId={id} />
       </Suspense>

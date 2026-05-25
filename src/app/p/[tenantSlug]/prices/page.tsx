@@ -1,4 +1,5 @@
 import { publicApiClient } from '@/lib/api/public-client';
+import { PrintButton } from './print-button';
 
 const CATEGORY_LABELS: Record<string, string> = {
   professional_services: 'Professional Services',
@@ -116,15 +117,7 @@ export default async function PublicPricesPage({
         * Taxable items. Applicable sales tax will be added at time of arrangement.
       </p>
 
-      {/* Print button — hidden when printing */}
-      <div className="text-center print:hidden">
-        <button
-          onClick={() => window.print()}
-          className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm hover:bg-muted transition-colors"
-        >
-          Print / Save as PDF
-        </button>
-      </div>
+      <PrintButton />
 
       {/* FTC footer */}
       <footer className="mt-12 pt-6 border-t text-xs text-muted-foreground print:mt-6">

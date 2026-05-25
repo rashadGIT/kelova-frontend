@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -209,9 +209,9 @@ function PaymentList({ caseId }: { caseId: string }) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-y-2">
         <h3 className="text-sm font-medium">Payment History</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant="outline"
@@ -890,7 +890,9 @@ export default function CasePaymentsPage({
         ))}
       </div>
       {activeTab === 'Payments' ? (
-        <PaymentList caseId={id} />
+        <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+          <PaymentList caseId={id} />
+        </Suspense>
       ) : (
         <PaymentPlanTab caseId={id} />
       )}

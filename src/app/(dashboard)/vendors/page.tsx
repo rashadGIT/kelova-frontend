@@ -102,10 +102,11 @@ export default function VendorsPage() {
             <div key={v.id} className="flex items-center justify-between px-4 py-3">
               <div>
                 <p className="font-medium text-sm">{v.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <Badge variant="outline" className="text-xs">{v.type}</Badge>
-                  {v.phone && <span className="text-xs text-muted-foreground">{v.phone}</span>}
-                  {v.email && <span className="text-xs text-muted-foreground">{v.email}</span>}
+                  {v.phone && <span className="text-xs text-muted-foreground whitespace-nowrap">{v.phone}</span>}
+                  {v.phone && v.email && <span className="text-xs text-muted-foreground">·</span>}
+                  {v.email && <span className="text-xs text-muted-foreground truncate">{v.email}</span>}
                 </div>
               </div>
               {!isStaff && (
