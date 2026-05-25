@@ -1,10 +1,10 @@
 # Kelova Frontend
 
-Next.js 15 App Router frontend for the Kelova funeral operations platform. Multi-tenant — each funeral home gets a subdomain (`sunrise.kelovaapp.com`). Auth via AWS Cognito + Amplify.
+Next.js 15 App Router frontend for the Kelova funeral operations platform. Multi-tenant — each funeral home gets a subdomain (`sunrise.kelova.com`). Auth via AWS Cognito + Amplify.
 
 - **Local dev:** `http://localhost:3000`
-- **Production:** `https://app.vigilhq.com` (Amplify Hosting)
-- **Backend API:** `http://localhost:3001` (dev) · `https://api.vigilhq.com` (prod)
+- **Production:** `https://app.kelova.com` (Amplify Hosting)
+- **Backend API:** `http://localhost:3001` (dev) · `https://api.kelova.com` (prod)
 
 ---
 
@@ -35,7 +35,7 @@ npm run dev
 | `NEXT_PUBLIC_DEV_TENANT_ID`        | dev      | Tenant ID injected during dev bypass       |
 | `NEXT_PUBLIC_COGNITO_USER_POOL_ID` | prod     | From CDK AuthStack output                  |
 | `NEXT_PUBLIC_COGNITO_CLIENT_ID`    | prod     | From CDK AuthStack output                  |
-| `NEXT_PUBLIC_APP_DOMAIN`           | yes      | `vigilhq.com` (subdomain resolution)       |
+| `NEXT_PUBLIC_APP_DOMAIN`           | yes      | `kelova.com` (subdomain resolution)        |
 | `NEXT_PUBLIC_ENABLE_PWA`           | no       | `false` — enable service worker in Phase 2 |
 
 ---
@@ -51,7 +51,7 @@ graph TD
     app["app/"]
     auth["(auth)/\nLogin · Register"]
     dash["(dashboard)/\nProtected staff UI"]
-    pub["Public routes\nIntake · Memorial · Family portal · Sign"]
+    pub["Public routes\nIntake · Memorial · Family · Sign · Preplanning\nAccommodations · Cemetery · Arrange · Check-in · RSVP · Pay"]
     api["api/\nNext.js API routes"]
 
     app --> auth
@@ -136,7 +136,7 @@ src/
 │
 ├── hooks/                  # Custom React hooks (see src/hooks/README.md)
 ├── lib/                    # Utilities, API clients, stores (see src/lib/README.md)
-│   ├── api/               # Axios clients + 18 domain API modules
+│   ├── api/               # Axios clients + 42 domain API modules
 │   ├── auth/              # AWS Amplify configuration
 │   ├── store/             # Zustand auth store
 │   └── utils/             # cn(), format-date
@@ -193,7 +193,7 @@ Test files:
 
 - `src/__tests__/components/` — 7 component unit tests
 - `src/__tests__/acceptance/` — 4 user flow tests (dashboard, intake, payments, follow-ups)
-- `e2e/` — 7 Playwright suites (navigation, cases, payments, signatures, calendar, intake, tasks)
+- `e2e/` — 26 Playwright suites: analytics, api-smoke, auth, calendar-flow, case-details, case-workflow, cases-crud, contacts-crud, contacts, documents, intake, memorial, merchandise, navigation, payment-flow, performance, preneed, price-list, role-restrictions, settings, signature-flow, task-workflow, tasks-crud, upload-flow, vendors-crud, vendors
 
 ---
 
@@ -211,6 +211,6 @@ Test files:
 
 ## Multi-Tenancy
 
-Each funeral home gets a subdomain: `sunrise.kelovaapp.com`. The middleware extracts the slug and forwards it as `x-tenant-slug` to API calls. The backend resolves the slug to a `tenantId` and scopes all data accordingly.
+Each funeral home gets a subdomain: `sunrise.kelova.com`. The middleware extracts the slug and forwards it as `x-tenant-slug` to API calls. The backend resolves the slug to a `tenantId` and scopes all data accordingly.
 
 For local development, use `?tenant=seed-tenant-id` query param instead of a subdomain.

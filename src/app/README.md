@@ -1,6 +1,6 @@
 # src/app
 
-Next.js 15 App Router entry point for Vigil. All routing is file-system based. Route groups (`(auth)`, `(dashboard)`) control layout nesting without affecting URL paths.
+Next.js 15 App Router entry point for Kelova. All routing is file-system based. Route groups (`(auth)`, `(dashboard)`) control layout nesting without affecting URL paths.
 
 ## Route Groups
 

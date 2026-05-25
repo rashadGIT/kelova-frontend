@@ -16,19 +16,23 @@ import {
   LogOut,
   BarChart2,
   Layers,
+  MessageSquare,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useAdminStore } from '@/lib/store/admin.store';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMessagingStore } from '@/lib/store/messaging.store';
 
 const regularNavItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard, exact: true },
   { label: 'Cases', href: '/cases', icon: FolderOpen, exact: false },
   { label: 'Calendar', href: '/calendar', icon: Calendar, exact: false },
+  { label: 'Messages', href: '/messaging', icon: MessageSquare, exact: false },
   { label: 'Vendors', href: '/vendors', icon: Building2, exact: false },
   { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false, directorOnly: true },
   { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false, directorOnly: true },
@@ -45,9 +49,11 @@ const adminNavItems = [
 function NavLink({
   item,
   onClick,
+  badge,
 }: {
   item: { label: string; href: string; icon: React.ElementType; exact: boolean };
   onClick?: () => void;
+  badge?: number;
 }) {
   const pathname = usePathname();
   const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
@@ -66,7 +72,12 @@ function NavLink({
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {!!badge && badge > 0 && (
+        <Badge variant="default" className="h-5 min-w-5 text-xs px-1.5 ml-auto">
+          {badge > 99 ? '99+' : badge}
+        </Badge>
+      )}
     </Link>
   );
 }
@@ -92,6 +103,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { activeTenantId, activeTenantName, exitTenantView } = useAdminStore();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const totalUnread = useMessagingStore((s) => s.totalUnread());
 
   const handleExit = () => {
     exitTenantView();
@@ -137,7 +149,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         ) : (
           // Mode B (tenant view) or regular user: full nav
           visibleRegularItems.map((item) => (
-            <NavLink key={item.href} item={item} onClick={onClose} />
+            <NavLink
+              key={item.href}
+              item={item}
+              onClick={onClose}
+              badge={item.href === '/messaging' ? totalUnread : undefined}
+            />
           ))
         )}
       </nav>
