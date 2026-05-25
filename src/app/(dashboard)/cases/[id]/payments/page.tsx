@@ -209,9 +209,9 @@ function PaymentList({ caseId }: { caseId: string }) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-y-2">
         <h3 className="text-sm font-medium">Payment History</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant="outline"

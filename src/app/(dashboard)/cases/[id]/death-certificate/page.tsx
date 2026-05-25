@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -331,7 +330,6 @@ export default function DeathCertificatePage({ params }: { params: Promise<{ id:
   return (
     <div>
       <CaseWorkspaceTabs caseId={id} />
-      <PageHeader title="Death Certificate" />
       <DeathCertificateContent caseId={id} />
     </div>
   );

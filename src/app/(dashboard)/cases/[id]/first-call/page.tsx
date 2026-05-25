@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -253,7 +252,6 @@ export default function FirstCallPage({ params }: { params: Promise<{ id: string
   return (
     <div>
       <CaseWorkspaceTabs caseId={id} />
-      <PageHeader title="First Call" description="Initial notification and removal record" />
       <FirstCallContent caseId={id} />
     </div>
   );
