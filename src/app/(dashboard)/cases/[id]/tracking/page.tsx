@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Printer, QrCode } from 'lucide-react';
@@ -67,7 +67,7 @@ function TrackingTab({ caseId }: { caseId: string }) {
   });
 
   const form = useForm<ScanFormValues>({
-    resolver: zodResolver(scanSchema),
+    resolver: standardSchemaResolver(scanSchema),
     defaultValues: { status: 'at_facility' },
   });
 

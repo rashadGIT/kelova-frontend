@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Pencil, ClipboardList } from 'lucide-react';
@@ -45,7 +45,7 @@ function ArrangementConferencePanel({ caseId }: { caseId: string }) {
   });
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: standardSchemaResolver(schema),
     values: {
       conductedBy: conference?.conductedBy ?? '',
       heldAt: conference?.heldAt ? conference.heldAt.slice(0, 16) : '',

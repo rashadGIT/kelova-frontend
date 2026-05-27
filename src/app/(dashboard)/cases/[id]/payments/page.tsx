@@ -3,7 +3,7 @@
 import { use, useEffect, useState, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
@@ -96,15 +96,15 @@ function PaymentList({ caseId }: { caseId: string }) {
   }, [searchParams, caseId, queryClient]);
 
   const recordForm = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentSchema),
+    resolver: standardSchemaResolver(paymentSchema),
   });
 
   const checkoutForm = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
+    resolver: standardSchemaResolver(checkoutSchema),
   });
 
   const refundForm = useForm<RefundFormValues>({
-    resolver: zodResolver(refundSchema),
+    resolver: standardSchemaResolver(refundSchema),
   });
 
   const recordMutation = useMutation({
@@ -562,12 +562,12 @@ function PaymentPlanTab({ caseId }: { caseId: string }) {
   });
 
   const createForm = useForm<CreatePlanValues>({
-    resolver: zodResolver(createPlanSchema),
+    resolver: standardSchemaResolver(createPlanSchema),
     defaultValues: { numberOfInstallments: 3, frequencyDays: 30, downPayment: 0 },
   });
 
   const recordForm = useForm<RecordInstallmentValues>({
-    resolver: zodResolver(recordInstallmentSchema),
+    resolver: standardSchemaResolver(recordInstallmentSchema),
   });
 
   const createMutation = useMutation({

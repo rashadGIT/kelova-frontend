@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -87,7 +87,7 @@ function NewArrangementDialog({ onSuccess }: { onSuccess: () => void }) {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ArrangementFormValues>({
-    resolver: zodResolver(arrangementSchema),
+    resolver: standardSchemaResolver(arrangementSchema),
     defaultValues: { serviceType: 'burial', fundingType: 'Insurance' },
   });
 

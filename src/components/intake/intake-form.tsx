@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -109,22 +109,22 @@ export function IntakeForm({ tenantSlug }: IntakeFormProps) {
   const [step3Data, setStep3Data] = useState<Step3Values | null>(null);
 
   const step1Form = useForm<Step1Values>({
-    resolver: zodResolver(step1Schema),
+    resolver: standardSchemaResolver(step1Schema),
     defaultValues: step1Data ?? { serviceType: 'burial', veteranStatus: false },
   });
 
   const step2Form = useForm<Step2Values>({
-    resolver: zodResolver(step2Schema),
+    resolver: standardSchemaResolver(step2Schema),
     defaultValues: step2Data ?? { primary: { isFinanciallyResponsible: true }, hasSecondary: false },
   });
 
   const step3Form = useForm<Step3Values>({
-    resolver: zodResolver(step3Schema),
+    resolver: standardSchemaResolver(step3Schema),
     defaultValues: step3Data ?? {},
   });
 
   const step4Form = useForm<Step4Values>({
-    resolver: zodResolver(step4Schema),
+    resolver: standardSchemaResolver(step4Schema),
   });
 
   const hasSecondary = step2Form.watch('hasSecondary');

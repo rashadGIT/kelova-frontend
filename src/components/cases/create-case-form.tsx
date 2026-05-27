@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ export function CreateCaseForm() {
   const queryClient = useQueryClient();
 
   const form = useForm<CreateCaseFormValues>({
-    resolver: zodResolver(createCaseSchema),
+    resolver: standardSchemaResolver(createCaseSchema),
     defaultValues: { serviceType: ServiceType.burial },
   });
 

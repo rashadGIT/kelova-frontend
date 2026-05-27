@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -82,12 +82,12 @@ export default function PreplanningPage({
   const [step2Data, setStep2Data] = useState<Step2Values | null>(null);
   const [step3Data, setStep3Data] = useState<Step3Values | null>(null);
 
-  const form1 = useForm<Step1Values>({ resolver: zodResolver(step1Schema) });
+  const form1 = useForm<Step1Values>({ resolver: standardSchemaResolver(step1Schema) });
   const form2 = useForm<Step2Values>({
-    resolver: zodResolver(step2Schema),
+    resolver: standardSchemaResolver(step2Schema),
     defaultValues: { serviceType: 'burial' },
   });
-  const form3 = useForm<Step3Values>({ resolver: zodResolver(step3Schema) });
+  const form3 = useForm<Step3Values>({ resolver: standardSchemaResolver(step3Schema) });
 
   const handleStep1 = (values: Step1Values) => {
     setStep1Data(values);

@@ -3,7 +3,7 @@
 import { use, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
@@ -61,7 +61,7 @@ function FirstCallContent({ caseId }: { caseId: string }) {
     control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: standardSchemaResolver(schema),
   });
 
   useEffect(() => {
