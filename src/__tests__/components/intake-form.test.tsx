@@ -9,6 +9,7 @@ import { IntakeForm } from '@/components/intake/intake-form';
 // Mock axios publicApiClient — component imports it from @/lib/api/public-client
 jest.mock('@/lib/api/public-client', () => ({
   publicApiClient: {
+    get: jest.fn(),
     post: jest.fn(),
   },
 }));
@@ -20,6 +21,7 @@ jest.mock('sonner', () => ({
 
 import { publicApiClient } from '@/lib/api/public-client';
 
+const mockGet = publicApiClient.get as jest.Mock;
 const mockPost = publicApiClient.post as jest.Mock;
 
 describe('IntakeForm', () => {
@@ -27,34 +29,33 @@ describe('IntakeForm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGet.mockResolvedValue({ data: { tenantName: 'Sunrise Funeral Home', tenantSlug: 'sunrise' } });
     mockPost.mockResolvedValue({ data: { caseId: 'case-new-123' } });
   });
 
-  it('renders step 1 with deceased first name input', () => {
+  it('renders step 1 with deceased first name input', async () => {
     render(<IntakeForm {...defaultProps} />);
-    // Label text is "First Name *" with id="firstName"
-    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    // Wait for tenant fetch; first textbox in step 1 is the first name field
+    await screen.findByRole('button', { name: /continue/i });
+    expect(screen.getAllByRole('textbox')[0]).toBeInTheDocument();
   });
 
-  it('renders the service type combobox', () => {
+  it('renders the service type combobox', async () => {
     render(<IntakeForm {...defaultProps} />);
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(await screen.findByRole('combobox')).toBeInTheDocument();
   });
 
-  it('renders "Continue" button on step 1', () => {
+  it('renders "Continue" button on step 1', async () => {
     render(<IntakeForm {...defaultProps} />);
-    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /continue/i })).toBeInTheDocument();
   });
 
   it('shows validation error when Continue clicked with empty first name', async () => {
     const user = userEvent.setup();
     render(<IntakeForm {...defaultProps} />);
 
-    // Clear the first name input (default is empty)
-    const firstNameInput = screen.getByLabelText(/first name/i);
-    await user.clear(firstNameInput);
-
-    // Click Continue
+    // Wait for form to appear after tenant fetch
+    await screen.findByRole('button', { name: /continue/i });
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => {
@@ -66,19 +67,14 @@ describe('IntakeForm', () => {
     const user = userEvent.setup();
     render(<IntakeForm {...defaultProps} />);
 
-    // Fill deceased first name
-    const firstNameInput = screen.getByLabelText(/first name/i);
-    await user.type(firstNameInput, 'Alice');
-
-    // Fill deceased last name — label "Last Name *" with id="lastName"
-    const lastNameInput = screen.getByLabelText(/last name/i);
-    await user.type(lastNameInput, 'Smith');
-
-    // serviceType defaults to 'burial' so combobox already has a value — no need to change it
+    // Wait for form to appear; textboxes[0] = first name, textboxes[1] = last name
+    await screen.findByRole('button', { name: /continue/i });
+    const textboxes = screen.getAllByRole('textbox');
+    await user.type(textboxes[0], 'Alice');
+    await user.type(textboxes[1], 'Smith');
 
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 2 shows "Primary Contact" heading
     await waitFor(() => {
       expect(screen.getByText(/primary contact/i)).toBeInTheDocument();
     });

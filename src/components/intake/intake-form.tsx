@@ -246,7 +246,7 @@ export function IntakeForm({ tenantSlug }: IntakeFormProps) {
     setTokenStates((prev) => ({ ...prev, [token]: state }));
   }
 
-  const allSigned = signatureTokens.length > 0 &&
+  const allSigned = signatureTokens.length === 0 ||
     signatureTokens.every((t) => tokenStates[t.token] === 'signed');
 
   const anyError = signatureTokens.some((t) => tokenStates[t.token] === 'error');
