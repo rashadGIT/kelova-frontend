@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useAdminStore } from '@/lib/store/admin.store';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
 
@@ -13,6 +14,7 @@ const PKCE_KEY = `CognitoIdentityServiceProvider.${CLIENT_ID}.oauthPKCE`;
 function AuthCallbackInner() {
   const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
+  const exitTenantView = useAdminStore((s) => s.exitTenantView);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState('Exchanging authorization code…');
   const exchanged = useRef(false);
@@ -77,6 +79,7 @@ function AuthCallbackInner() {
           tenantId: profile.tenantId,
           picture: profile.picture,
         });
+        exitTenantView();
 
         // Clean up PKCE state
         localStorage.removeItem(PKCE_KEY);
