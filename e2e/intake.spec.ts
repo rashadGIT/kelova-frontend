@@ -22,8 +22,21 @@ test.describe('Intake form', () => {
   });
 
   test('intake form has visible text input fields', async ({ page }) => {
+    // Mock the tenant-info API so the form renders even without a running backend
+    await page.route('**/intake/sunrise', (route) => {
+      if (route.request().method() === 'GET') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ tenantName: 'Sunrise Funeral Home', tenantSlug: 'sunrise' }),
+        });
+      }
+      return route.continue();
+    });
+
     const response = await page.goto('/intake/sunrise');
-    await page.waitForLoadState('networkidle');
+    // Wait for the loading spinner to clear and the form to render
+    await page.waitForSelector('input', { timeout: 10000 }).catch(() => null);
 
     if (response?.status() === 200) {
       const inputs = page.locator('input[type="text"], input:not([type]), input[type="email"], input[type="tel"]');
