@@ -3,7 +3,7 @@
 import { use } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { CheckCircle, Circle } from 'lucide-react';
@@ -76,7 +76,7 @@ function CemeteryForm({ caseId }: { caseId: string }) {
     formState: { isSubmitting },
     reset,
   } = useForm<CemeteryFormValues>({
-    resolver: zodResolver(cemeterySchema),
+    resolver: standardSchemaResolver(cemeterySchema),
     values: record
       ? {
           cemeteryName: record.cemeteryName ?? '',

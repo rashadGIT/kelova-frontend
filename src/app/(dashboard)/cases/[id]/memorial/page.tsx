@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { ExternalLink, Globe, EyeOff } from 'lucide-react';
@@ -38,7 +38,7 @@ function MemorialManager({ caseId }: { caseId: string }) {
   });
 
   const form = useForm<MemorialFormValues>({
-    resolver: zodResolver(memorialSchema),
+    resolver: standardSchemaResolver(memorialSchema),
     defaultValues: {
       bioText: memorial?.bioText ?? '',
       photoUrls: memorial?.photoUrls?.join('\n') ?? '',

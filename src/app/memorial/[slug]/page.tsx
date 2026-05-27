@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Share2, Heart, Image as ImageIcon } from 'lucide-react';
@@ -49,7 +49,7 @@ export default function PublicMemorialPage({
   });
 
   const form = useForm<GuestbookFormValues>({
-    resolver: zodResolver(guestbookSchema),
+    resolver: standardSchemaResolver(guestbookSchema),
   });
 
   const guestbookMutation = useMutation({
