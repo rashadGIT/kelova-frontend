@@ -32,7 +32,7 @@ const step1Schema = z.object({
 
 const step2Schema = z.object({
   serviceType: z.enum(['burial', 'cremation', 'graveside', 'memorial'], {
-    errorMap: () => ({ message: 'Please select a service type' }),
+    error: 'Please select a service type',
   }),
   notes: z.string().optional(),
 });

@@ -38,7 +38,7 @@ const CATEGORIES: { value: MerchandiseCategory; label: string }[] = [
 const itemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category: z.enum(['casket', 'urn', 'vault', 'clothing', 'flowers', 'stationery', 'other']),
-  retailPrice: z.coerce.number({ invalid_type_error: 'Retail price is required' }).nonnegative(),
+  retailPrice: z.coerce.number({ error: 'Retail price is required' }).nonnegative(),
   costPrice: z.coerce.number().nonnegative().optional().or(z.literal('')),
   sku: z.string().optional(),
   description: z.string().optional(),

@@ -50,17 +50,17 @@ import { formatDate } from '@/lib/utils/format-date';
 const paymentSchema = z.object({
   amount: z
     .coerce
-    .number({ invalid_type_error: 'Amount is required' })
+    .number({ error: 'Amount is required' })
     .positive('Amount must be greater than zero'),
   method: z.enum(['Cash', 'Check', 'Card', 'Wire', 'Other'], {
-    errorMap: () => ({ message: 'Payment method is required' }),
+    error: 'Payment method is required',
   }),
 });
 
 const checkoutSchema = z.object({
   dollars: z
     .coerce
-    .number({ invalid_type_error: 'Amount is required' })
+    .number({ error: 'Amount is required' })
     .positive('Amount must be greater than zero'),
   description: z.string().optional(),
 });

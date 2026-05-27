@@ -21,7 +21,7 @@ const step1Schema = z.object({
   dateOfBirth: z.string().optional(),
   dateOfDeath: z.string().optional(),
   serviceType: z.enum(['burial', 'cremation', 'graveside', 'memorial'], {
-    errorMap: () => ({ message: 'Select a service type' }),
+    error: 'Select a service type',
   }),
   veteranStatus: z.boolean().default(false),
   placeOfDeath: z.string().max(200).optional(),
@@ -52,7 +52,7 @@ const step3Schema = z.object({
 
 const step4Schema = z.object({
   financialResponsibilityAcknowledgment: z.literal(true, {
-    errorMap: () => ({ message: 'You must acknowledge financial responsibility to continue' }),
+    error: 'You must acknowledge financial responsibility to continue',
   }),
   howDidYouHearAboutUs: z.string().max(100).optional(),
 });
