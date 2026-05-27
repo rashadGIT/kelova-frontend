@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Plus, Package, Trash2 } from 'lucide-react';
@@ -38,7 +38,7 @@ const CATEGORIES: { value: MerchandiseCategory; label: string }[] = [
 const itemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category: z.enum(['casket', 'urn', 'vault', 'clothing', 'flowers', 'stationery', 'other']),
-  retailPrice: z.coerce.number({ invalid_type_error: 'Retail price is required' }).nonnegative(),
+  retailPrice: z.coerce.number({ error: 'Retail price is required' }).nonnegative(),
   costPrice: z.coerce.number().nonnegative().optional().or(z.literal('')),
   sku: z.string().optional(),
   description: z.string().optional(),
@@ -69,7 +69,7 @@ function ItemDialog({
     reset,
     formState: { errors },
   } = useForm<ItemFormValues>({
-    resolver: zodResolver(itemSchema),
+    resolver: standardSchemaResolver(itemSchema),
     defaultValues: item
       ? {
           name: item.name,
