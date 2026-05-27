@@ -57,7 +57,7 @@ const step2Schema = z.object({
   informantName: z.string().min(2, 'Name is required').max(150),
   informantRelationship: z.string().min(1, 'Relationship is required').max(80),
   isAuthorizedRepresentative: z.literal(true, {
-    errorMap: () => ({ message: 'You must confirm your authority to complete this form' }),
+    error: 'You must confirm your authority to complete this form',
   }),
 });
 
