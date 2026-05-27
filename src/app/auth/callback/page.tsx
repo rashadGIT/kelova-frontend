@@ -63,7 +63,7 @@ function AuthCallbackInner() {
           throw new Error(`Sign-in failed (${res.status}): ${text}`);
         }
 
-        const profile = await res.json() as { id: string; email: string; name: string; role: string; tenantId: string; picture?: string; accessToken: string; cognitoSub: string };
+        const profile = await res.json() as { id: string; email: string; name: string; role: string; tenantId: string; tenantSlug?: string | null; picture?: string; accessToken: string; cognitoSub: string };
 
         // Store the Cognito access token in localStorage using the same keys Amplify uses
         // so getCognitoAccessToken() in apiClient can find it for subsequent API calls.
@@ -77,6 +77,7 @@ function AuthCallbackInner() {
           name: profile.name,
           role: profile.role,
           tenantId: profile.tenantId,
+          tenantSlug: profile.tenantSlug,
           picture: profile.picture,
         });
         exitTenantView();
