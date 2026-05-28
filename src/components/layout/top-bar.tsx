@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { MobileSidebarTrigger } from './sidebar';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useAdminStore } from '@/lib/store/admin.store';
 import { logout } from '@/lib/api/auth';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -25,10 +26,12 @@ const ROLE_LABELS: Record<string, string> = {
 export function TopBar() {
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
+  const { exitTenantView } = useAdminStore();
 
   async function handleLogout() {
     await logout();
     clearUser();
+    exitTenantView();
     router.push('/login');
   }
 

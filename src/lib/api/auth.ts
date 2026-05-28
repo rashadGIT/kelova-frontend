@@ -12,6 +12,7 @@ export interface UserProfile {
   name: string;
   role: string;
   tenantId: string;
+  tenantSlug?: string | null;
 }
 
 function clearStaleOAuthState() {

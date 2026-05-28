@@ -10,18 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
-const TABS = [
-  { label: 'Branding', href: '/settings/branding' },
-  { label: 'Staff', href: '/settings/staff' },
-  { label: 'Templates', href: '/settings/templates' },
-  { label: 'Integrations', href: '/settings/integrations' },
-  { label: 'API & Webhooks', href: '/settings/api' },
+const BASE_TABS = [
+  { label: 'Branding', href: '/settings/branding', directorOnly: false },
+  { label: 'Staff', href: '/settings/staff', directorOnly: false },
+  { label: 'Templates', href: '/settings/templates', directorOnly: false },
+  { label: 'Intake Form', href: '/settings/intake', directorOnly: false },
+  { label: 'Integrations', href: '/settings/integrations', directorOnly: false },
+  { label: 'API & Webhooks', href: '/settings/api', directorOnly: false },
+  { label: 'Multi-Location', href: '/settings/multi-location', directorOnly: true },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isFuneralDirector, isSuperAdmin } = useCurrentUser();
+  const canSeeDirectorTabs = isFuneralDirector || isSuperAdmin;
+  const TABS = BASE_TABS.filter((t) => !t.directorOnly || canSeeDirectorTabs);
   const current = TABS.find((t) => t.href === pathname);
 
   return (

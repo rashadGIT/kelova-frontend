@@ -11,6 +11,7 @@ import { IntakeForm } from '@/components/intake/intake-form';
 
 jest.mock('@/lib/api/public-client', () => ({
   publicApiClient: {
+    get: jest.fn(),
     post: jest.fn(),
   },
 }));
@@ -22,12 +23,14 @@ jest.mock('sonner', () => ({
 import { toast } from 'sonner';
 import { publicApiClient } from '@/lib/api/public-client';
 
+const mockGet = publicApiClient.get as jest.Mock;
 const mockPost = publicApiClient.post as jest.Mock;
 
 describe('Acceptance: Intake submission flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPost.mockResolvedValue({ data: { caseId: 'case-abc-123', familyAccessToken: 'tok-abc-123' } });
+    mockGet.mockResolvedValue({ data: { tenantName: 'Sunrise Funeral Home', tenantSlug: 'sunrise' } });
+    mockPost.mockResolvedValue({ data: { caseId: 'case-abc-123', familyAccessToken: 'tok-abc-123', signatureTokens: [] } });
   });
 
   it('completes full 3-step intake form and shows success state', async () => {
@@ -35,9 +38,11 @@ describe('Acceptance: Intake submission flow', () => {
     render(<IntakeForm tenantSlug="sunrise" />);
 
     // --- Step 1: Deceased information ---
-    // serviceType defaults to 'burial' so combobox is already valid
-    await user.type(screen.getByLabelText(/first name/i), 'Alice');
-    await user.type(screen.getByLabelText(/last name/i), 'Smith');
+    // Wait for tenant fetch; textboxes[0] = first name, textboxes[1] = last name
+    await screen.findByRole('button', { name: /continue/i });
+    const step1Inputs = screen.getAllByRole('textbox');
+    await user.type(step1Inputs[0], 'Alice');
+    await user.type(step1Inputs[1], 'Smith');
 
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
@@ -61,9 +66,16 @@ describe('Acceptance: Intake submission flow', () => {
     const emailInput = screen.getByPlaceholderText(/email/i);
     await user.type(emailInput, 'jane@example.com');
 
-    // Relationship input
-    const relationshipInput = screen.getByPlaceholderText(/spouse/i);
+    // Relationship input — use exact placeholder to avoid matching informantRelationship
+    const relationshipInput = screen.getByPlaceholderText('e.g. Spouse, Child, Sibling');
     await user.type(relationshipInput, 'Spouse');
+
+    // Informant fields are required — fill explicitly (auto-fill via watch may not fire in tests)
+    await user.type(screen.getByPlaceholderText('Your full legal name'), 'Jane Smith');
+    await user.type(screen.getByPlaceholderText('e.g. Son, Daughter, Spouse'), 'Spouse');
+
+    // Authorized representative checkbox is required (z.literal(true))
+    await user.click(screen.getByRole('checkbox', { name: /legally authorized/i }));
 
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
@@ -113,9 +125,11 @@ describe('Acceptance: Intake submission flow', () => {
 
     render(<IntakeForm tenantSlug="sunrise" />);
 
-    // Complete steps 1 and 2 quickly
-    await user.type(screen.getByLabelText(/first name/i), 'Bob');
-    await user.type(screen.getByLabelText(/last name/i), 'Jones');
+    // Complete steps 1 and 2 quickly — wait for tenant fetch first
+    await screen.findByRole('button', { name: /continue/i });
+    const step1Inputs = screen.getAllByRole('textbox');
+    await user.type(step1Inputs[0], 'Bob');
+    await user.type(step1Inputs[1], 'Jones');
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => screen.getByText(/primary contact/i));
@@ -125,7 +139,10 @@ describe('Acceptance: Intake submission flow', () => {
     await user.type(allTextboxes[1], 'Jones');
     await user.type(screen.getByPlaceholderText(/555/i), '5550009999');
     await user.type(screen.getByPlaceholderText(/email/i), 'mary@example.com');
-    await user.type(screen.getByPlaceholderText(/spouse/i), 'Child');
+    await user.type(screen.getByPlaceholderText('e.g. Spouse, Child, Sibling'), 'Child');
+    await user.type(screen.getByPlaceholderText('Your full legal name'), 'Mary Jones');
+    await user.type(screen.getByPlaceholderText('e.g. Son, Daughter, Spouse'), 'Child');
+    await user.click(screen.getByRole('checkbox', { name: /legally authorized/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
     await waitFor(() => screen.getByText(/service preferences/i));

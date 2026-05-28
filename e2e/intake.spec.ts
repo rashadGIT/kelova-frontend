@@ -23,7 +23,7 @@ test.describe('Intake form', () => {
 
   test('intake form has visible text input fields', async ({ page }) => {
     const response = await page.goto('/intake/sunrise');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('input', { timeout: 10000 }).catch(() => null);
 
     if (response?.status() === 200) {
       const inputs = page.locator('input[type="text"], input:not([type]), input[type="email"], input[type="tel"]');

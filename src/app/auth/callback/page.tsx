@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useAdminStore } from '@/lib/store/admin.store';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? '';
 
@@ -13,6 +14,7 @@ const PKCE_KEY = `CognitoIdentityServiceProvider.${CLIENT_ID}.oauthPKCE`;
 function AuthCallbackInner() {
   const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
+  const exitTenantView = useAdminStore((s) => s.exitTenantView);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState('Exchanging authorization code…');
   const exchanged = useRef(false);
@@ -61,7 +63,7 @@ function AuthCallbackInner() {
           throw new Error(`Sign-in failed (${res.status}): ${text}`);
         }
 
-        const profile = await res.json() as { id: string; email: string; name: string; role: string; tenantId: string; picture?: string; accessToken: string; cognitoSub: string };
+        const profile = await res.json() as { id: string; email: string; name: string; role: string; tenantId: string; tenantSlug?: string | null; picture?: string; accessToken: string; cognitoSub: string };
 
         // Store the Cognito access token in localStorage using the same keys Amplify uses
         // so getCognitoAccessToken() in apiClient can find it for subsequent API calls.
@@ -75,8 +77,10 @@ function AuthCallbackInner() {
           name: profile.name,
           role: profile.role,
           tenantId: profile.tenantId,
+          tenantSlug: profile.tenantSlug,
           picture: profile.picture,
         });
+        exitTenantView();
 
         // Clean up PKCE state
         localStorage.removeItem(PKCE_KEY);

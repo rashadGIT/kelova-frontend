@@ -26,16 +26,27 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      NEXT_PUBLIC_API_URL: 'http://localhost:3001',
-      // Disables the Next.js middleware auth redirect for E2E tests.
-      // The backend still validates requests; use DEV_AUTH_BYPASS=true there too.
-      NEXT_PUBLIC_DEV_AUTH_BYPASS: 'true',
+  webServer: [
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        NEXT_PUBLIC_API_URL: 'http://localhost:3001',
+        // Disables the Next.js middleware auth redirect for E2E tests.
+        // The backend still validates requests; use DEV_AUTH_BYPASS=true there too.
+        NEXT_PUBLIC_DEV_AUTH_BYPASS: 'true',
+      },
     },
-  },
+    {
+      // Mock backend — serves intake/preplanning routes so those E2E tests work
+      // without a live backend. Returns 404 for /health so requireBackend() tests
+      // skip gracefully (they need real data the mock doesn't provide).
+      command: 'node e2e/mock-server.js',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+      timeout: 10_000,
+    },
+  ],
 });

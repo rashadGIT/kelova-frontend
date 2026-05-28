@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { SignatureCapture } from '@/components/signatures/signature-canvas';
 import { publicApiClient } from '@/lib/api/public-client';
 import type { ISignature } from '@/types';
@@ -23,10 +24,13 @@ export default function SignPage({ params }: SignPageProps) {
   const [signatureRequest, setSignatureRequest] = useState<{ signerName: string; documentType: string; caseId: string } | null>(null);
   const [signerName, setSignerName] = useState('');
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const [intentConfirmed, setIntentConfirmed] = useState(false);
+  const [intentLoading, setIntentLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    publicApiClient.get<ISignature>(`/signatures/token/${token}`)
+    // Bug fix: was calling /signatures/token/:token — correct path is /sign/:token
+    publicApiClient.get<ISignature>(`/sign/${token}`)
       .then((res) => {
         const sig = res.data;
         if (sig.signedAt) {
@@ -44,13 +48,29 @@ export default function SignPage({ params }: SignPageProps) {
       });
   }, [token]);
 
+  async function handleIntentConfirm(checked: boolean) {
+    if (!checked || intentConfirmed) return;
+    setIntentLoading(true);
+    try {
+      // Bug fix: was missing intent call — sign() requires checkboxConfirmedAt to be set first
+      await publicApiClient.post(`/sign/${token}/intent`);
+      setIntentConfirmed(true);
+    } catch {
+      setErrorMsg('Failed to confirm intent. Please try again.');
+    } finally {
+      setIntentLoading(false);
+    }
+  }
+
   async function handleSign() {
-    if (!signatureDataUrl || !signerName.trim()) return;
+    if (!signatureDataUrl || !signerName.trim() || !intentConfirmed) return;
     setState('signing');
     try {
-      await publicApiClient.post(`/signatures/${token}/sign`, {
-        signatureDataUrl,
-        signerName: signerName.trim(),
+      // Bug fix: was calling /signatures/:token/sign with wrong field names
+      // Correct path: /sign/:token, correct fields: signatureData + intentConfirmed (matches SignDto)
+      await publicApiClient.post(`/sign/${token}`, {
+        signatureData: signatureDataUrl,
+        intentConfirmed: true,
       });
       setState('signed');
     } catch {
@@ -101,7 +121,9 @@ export default function SignPage({ params }: SignPageProps) {
             {/* Document info */}
             <div className="rounded-md border p-4 space-y-2">
               <p className="text-sm font-medium">Document</p>
-              <p className="text-sm text-muted-foreground">{signatureRequest.documentType.replace('_', ' ')}</p>
+              <p className="text-sm text-muted-foreground capitalize">
+                {signatureRequest.documentType.replace('_', ' ')}
+              </p>
             </div>
 
             <Separator />
@@ -120,13 +142,33 @@ export default function SignPage({ params }: SignPageProps) {
               />
             </div>
 
-            {/* Signature canvas */}
+            {/* Intent checkbox — must confirm before canvas is enabled (UETA compliance) */}
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="intent"
+                checked={intentConfirmed}
+                disabled={intentLoading || intentConfirmed}
+                onCheckedChange={(v) => handleIntentConfirm(!!v)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="intent" className="font-normal leading-relaxed cursor-pointer">
+                I have read the above document and intend to sign it electronically.
+                {intentLoading && <span className="text-muted-foreground ml-1">(confirming...)</span>}
+              </Label>
+            </div>
+
+            {/* Signature canvas — disabled until intent confirmed */}
             <div className="space-y-2">
               <Label className="font-medium">
                 Draw Your Signature <span className="text-destructive">*</span>
               </Label>
-              <SignatureCapture onSave={(dataUrl) => setSignatureDataUrl(dataUrl)} />
-              {signatureDataUrl && (
+              <div className={intentConfirmed ? undefined : 'opacity-40 pointer-events-none'}>
+                <SignatureCapture onSave={(dataUrl) => setSignatureDataUrl(dataUrl)} />
+              </div>
+              {!intentConfirmed && (
+                <p className="text-xs text-muted-foreground">Confirm intent above to enable signature.</p>
+              )}
+              {intentConfirmed && signatureDataUrl && (
                 <p className="text-xs text-green-700">Signature captured. You can redraw if needed.</p>
               )}
             </div>
@@ -139,7 +181,7 @@ export default function SignPage({ params }: SignPageProps) {
             <Button
               className="w-full h-12 text-base"
               onClick={handleSign}
-              disabled={!signatureDataUrl || !signerName.trim() || state === 'signing'}
+              disabled={!signatureDataUrl || !signerName.trim() || !intentConfirmed || state === 'signing'}
             >
               {state === 'signing' ? 'Submitting...' : 'Sign Document'}
             </Button>
