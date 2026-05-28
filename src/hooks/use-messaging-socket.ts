@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMessagingStore } from '@/lib/store/messaging.store';
-import type { MessageRecord } from '@/lib/api/messaging';
+import { sendMessageHttp, type MessageRecord } from '@/lib/api/messaging';
 
 function getCognitoAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -92,12 +92,50 @@ export function useMessagingSocket(userId: string | null | undefined) {
 
   function sendMessage(conversationId: string, body: string) {
     const sock = socketRef.current ?? globalSocket;
-    if (!sock?.connected) {
-      // eslint-disable-next-line no-console
-      console.warn('[messaging socket] not connected — cannot send');
-      return;
+
+    // Optimistically add a placeholder so the sender sees the message immediately
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimistic: MessageRecord = {
+      id: optimisticId,
+      conversationId,
+      senderId: userId ?? '',
+      tenantId: '',
+      body,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    qc.setQueryData<MessageRecord[]>(['messages', conversationId], (old) =>
+      old ? [optimistic, ...old] : [optimistic],
+    );
+
+    if (sock?.connected) {
+      // Ack callback receives the saved MessageRecord from the gateway's return value
+      sock.emit('message:send', { conversationId, body }, (saved: MessageRecord) => {
+        if (!saved?.id) return;
+        qc.setQueryData<MessageRecord[]>(['messages', conversationId], (old) =>
+          old ? old.map((m) => (m.id === optimisticId ? saved : m)) : [saved],
+        );
+        void qc.invalidateQueries({ queryKey: ['conversations'] });
+      });
+    } else {
+      // Socket unavailable — fall back to HTTP; server will broadcast via socket to others
+      sendMessageHttp(conversationId, body)
+        .then((saved) => {
+          // Replace optimistic entry with the real record
+          qc.setQueryData<MessageRecord[]>(['messages', conversationId], (old) =>
+            old
+              ? old.map((m) => (m.id === optimisticId ? saved : m))
+              : [saved],
+          );
+          void qc.invalidateQueries({ queryKey: ['conversations'] });
+        })
+        .catch(() => {
+          // Remove optimistic entry on failure
+          qc.setQueryData<MessageRecord[]>(['messages', conversationId], (old) =>
+            old ? old.filter((m) => m.id !== optimisticId) : [],
+          );
+        });
     }
-    sock.emit('message:send', { conversationId, body });
   }
 
   function sendReadReceipt(conversationId: string) {

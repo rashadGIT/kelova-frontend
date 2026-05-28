@@ -76,6 +76,17 @@ export async function getMessages(
   return res.data;
 }
 
+export async function sendMessageHttp(
+  conversationId: string,
+  body: string,
+): Promise<MessageRecord> {
+  const res = await apiClient.post<MessageRecord>('/messaging/messages', {
+    conversationId,
+    body,
+  });
+  return res.data;
+}
+
 export async function markConversationRead(conversationId: string): Promise<void> {
   await apiClient.patch(`/messaging/conversations/${conversationId}/read`);
 }
