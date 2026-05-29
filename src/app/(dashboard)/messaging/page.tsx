@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { MessageSquare } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, MessageSquare } from 'lucide-react';
 import {
   getConversations,
   getMessages,
@@ -21,8 +21,10 @@ import { useAuthStore } from '@/lib/store/auth.store';
 
 export default function MessagingPage() {
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
   const { activeConversationId, setActiveConversation, clearUnread } =
     useMessagingStore();
+
   const [newModalOpen, setNewModalOpen] = useState(false);
 
   const { sendMessage, sendTypingStart, sendTypingStop } = useMessagingSocket(user?.id);
@@ -76,9 +78,12 @@ export default function MessagingPage() {
 
   const handleNewCreated = useCallback(
     (conv: ConversationSummary) => {
+      queryClient.setQueryData<ConversationSummary[]>(['conversations'], (old = []) =>
+        old.find((c) => c.id === conv.id) ? old : [conv, ...old],
+      );
       void handleSelect(conv.id);
     },
-    [handleSelect],
+    [handleSelect, queryClient],
   );
 
   return (
@@ -94,11 +99,17 @@ export default function MessagingPage() {
       </div>
 
       {/* Right pane — active thread */}
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className={`${activeConversationId ? 'flex' : 'hidden sm:flex'} flex-col flex-1 min-w-0`}>
         {activeConversationId && activeConversation ? (
           <>
             {/* Header */}
             <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0">
+              <button
+                className="sm:hidden -ml-1 p-1 rounded-md text-muted-foreground hover:text-foreground"
+                onClick={() => setActiveConversation(null)}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
               <div>
                 <p className="font-semibold text-sm">
                   {activeConversation.name ??

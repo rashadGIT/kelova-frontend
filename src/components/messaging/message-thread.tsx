@@ -15,7 +15,7 @@ interface MessageThreadProps {
 
 export function MessageThread({ messages, conversationId, participantNames }: MessageThreadProps) {
   const user = useAuthStore((s) => s.user);
-  const typingUserIds = useMessagingStore((s) => s.typingUserIds[conversationId] ?? []);
+  const typingUserIds = useMessagingStore((s) => s.typingUserIds[conversationId]) ?? [];
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

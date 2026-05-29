@@ -62,7 +62,7 @@ export function MessageInput({ onSend, onTypingStart, onTypingStop, disabled }: 
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onBlur={stopTyping}
-        placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+        placeholder="Type a message…"
         rows={1}
         className="resize-none min-h-[40px] max-h-32 flex-1"
         disabled={disabled}
