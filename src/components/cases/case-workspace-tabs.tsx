@@ -18,6 +18,7 @@ const primaryTabs = [
   { label: 'Overview', href: '' },
   { label: 'Tasks', href: '/tasks' },
   { label: 'Documents', href: '/documents' },
+  { label: 'Contacts', href: '/contacts' },
   { label: 'Payments', href: '/payments' },
 ];
 
