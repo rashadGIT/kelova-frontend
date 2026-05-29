@@ -54,3 +54,29 @@ export async function updateCaseStatus(id: string, status: CaseStatus): Promise<
   const res = await apiClient.patch<ICase>(`/cases/${id}/status`, { status });
   return res.data;
 }
+
+export async function sendFamilyPortalLink(caseId: string): Promise<{ sent: boolean; email: string }> {
+  const res = await apiClient.post<{ sent: boolean; email: string }>(
+    `/cases/${caseId}/family-portal/send-link`,
+  );
+  return res.data;
+}
+
+export interface FamilyMessage {
+  id: string;
+  body: string;
+  senderType: 'family' | 'staff';
+  staffId: string | null;
+  contactId: string;
+  createdAt: string;
+}
+
+export async function getFamilyMessages(caseId: string): Promise<FamilyMessage[]> {
+  const res = await apiClient.get<FamilyMessage[]>(`/cases/${caseId}/family-messages`);
+  return res.data;
+}
+
+export async function postFamilyMessage(caseId: string, body: string): Promise<FamilyMessage> {
+  const res = await apiClient.post<FamilyMessage>(`/cases/${caseId}/family-messages`, { body });
+  return res.data;
+}

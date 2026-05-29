@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CaseOverview } from '@/components/cases/case-overview';
+import { FamilyMessagesCard } from '@/components/cases/family-messages-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { getCaseById } from '@/lib/api/cases';
 
@@ -16,9 +17,12 @@ export default async function CaseWorkspacePage({ params }: { params: Promise<{ 
         <PageHeader title={title} description="Case Details" />
       </div>
       <CaseWorkspaceTabs caseId={id} caseName={title} />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-        <CaseOverview caseId={id} initialData={caseData ?? undefined} />
-      </Suspense>
+      <div className="space-y-4">
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <CaseOverview caseId={id} initialData={caseData ?? undefined} />
+        </Suspense>
+        <FamilyMessagesCard caseId={id} />
+      </div>
     </div>
   );
 }

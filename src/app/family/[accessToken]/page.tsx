@@ -7,7 +7,9 @@ interface PortalCase {
   status: string;
   stage: string;
   serviceType: string;
+  arrangementDate: string | null;
   createdAt: string;
+  familyInfoSubmittedAt: string | null;
 }
 
 interface PortalDocument {
@@ -16,6 +18,15 @@ interface PortalDocument {
   documentType: string;
   uploaded: boolean;
   createdAt: string;
+}
+
+interface PortalTask {
+  id: string;
+  title: string;
+  completed: boolean;
+  dueDate: string | null;
+  rsvpToken: string | null;
+  rsvpStatus: string | null;
 }
 
 interface PortalAccess {
@@ -30,6 +41,7 @@ export interface PortalData {
   case: PortalCase | null;
   contacts: { id: string; name: string; relationship: string; isPrimaryContact: boolean }[];
   documents: PortalDocument[];
+  tasks: PortalTask[];
 }
 
 async function fetchPortalData(accessToken: string): Promise<PortalData | null> {
