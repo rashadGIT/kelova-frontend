@@ -4,6 +4,7 @@ interface MessagingState {
   activeConversationId: string | null;
   unreadCounts: Record<string, number>;
   onlineUserIds: Set<string>;
+  typingUserIds: Record<string, string[]>;
 
   setActiveConversation: (id: string | null) => void;
   setUnreadCounts: (counts: Record<string, number>) => void;
@@ -12,12 +13,15 @@ interface MessagingState {
   setUserOnline: (userId: string) => void;
   setUserOffline: (userId: string) => void;
   totalUnread: () => number;
+  setTyping: (conversationId: string, userId: string) => void;
+  clearTyping: (conversationId: string, userId: string) => void;
 }
 
 export const useMessagingStore = create<MessagingState>()((set, get) => ({
   activeConversationId: null,
   unreadCounts: {},
   onlineUserIds: new Set(),
+  typingUserIds: {},
 
   setActiveConversation: (id) => set({ activeConversationId: id }),
 
@@ -50,4 +54,22 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
 
   totalUnread: () =>
     Object.values(get().unreadCounts).reduce((sum, n) => sum + n, 0),
+
+  setTyping: (conversationId, userId) =>
+    set((state) => {
+      const current = state.typingUserIds[conversationId] ?? [];
+      if (current.includes(userId)) return state;
+      return { typingUserIds: { ...state.typingUserIds, [conversationId]: [...current, userId] } };
+    }),
+
+  clearTyping: (conversationId, userId) =>
+    set((state) => {
+      const current = state.typingUserIds[conversationId] ?? [];
+      return {
+        typingUserIds: {
+          ...state.typingUserIds,
+          [conversationId]: current.filter((id) => id !== userId),
+        },
+      };
+    }),
 }));

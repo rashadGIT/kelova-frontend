@@ -1,22 +1,47 @@
 'use client';
 
-import { useState, useRef, KeyboardEvent } from 'react';
+import { useState, useRef, useCallback, KeyboardEvent } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 interface MessageInputProps {
   onSend: (body: string) => void;
+  onTypingStart?: () => void;
+  onTypingStop?: () => void;
   disabled?: boolean;
 }
 
-export function MessageInput({ onSend, disabled }: MessageInputProps) {
+export function MessageInput({ onSend, onTypingStart, onTypingStop, disabled }: MessageInputProps) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+
+  const stopTyping = useCallback(() => {
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      onTypingStop?.();
+    }
+  }, [onTypingStop]);
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setValue(e.target.value);
+
+    if (e.target.value && !isTypingRef.current) {
+      isTypingRef.current = true;
+      onTypingStart?.();
+    }
+
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(stopTyping, 3000);
+  }
 
   function submit() {
     const body = value.trim();
     if (!body) return;
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    stopTyping();
     onSend(body);
     setValue('');
     textareaRef.current?.focus();
@@ -34,8 +59,9 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
       <Textarea
         ref={textareaRef}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onBlur={stopTyping}
         placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
         rows={1}
         className="resize-none min-h-[40px] max-h-32 flex-1"

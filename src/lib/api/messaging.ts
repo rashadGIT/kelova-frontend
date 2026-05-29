@@ -14,7 +14,7 @@ export interface AvailableUser {
 export interface MessageRecord {
   id: string;
   conversationId: string;
-  senderId: string;
+  sender: { id: string; name: string };
   tenantId: string;
   body: string;
   createdAt: string;

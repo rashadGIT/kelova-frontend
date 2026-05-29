@@ -25,7 +25,7 @@ export default function MessagingPage() {
     useMessagingStore();
   const [newModalOpen, setNewModalOpen] = useState(false);
 
-  const { sendMessage } = useMessagingSocket(user?.id);
+  const { sendMessage, sendTypingStart, sendTypingStop } = useMessagingSocket(user?.id);
 
   const { data: conversations = [] } = useQuery<ConversationSummary[]>({
     queryKey: ['conversations'],
@@ -116,8 +116,16 @@ export default function MessagingPage() {
               </div>
             </div>
 
-            <MessageThread messages={messages} participantNames={participantNames} />
-            <MessageInput onSend={handleSend} />
+            <MessageThread
+              messages={messages}
+              conversationId={activeConversationId}
+              participantNames={participantNames}
+            />
+            <MessageInput
+              onSend={handleSend}
+              onTypingStart={() => sendTypingStart(activeConversationId)}
+              onTypingStop={() => sendTypingStop(activeConversationId)}
+            />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">

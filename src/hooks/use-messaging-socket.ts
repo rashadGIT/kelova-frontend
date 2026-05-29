@@ -25,7 +25,7 @@ let globalSocket: Socket | null = null;
 export function useMessagingSocket(userId: string | null | undefined) {
   const socketRef = useRef<Socket | null>(null);
   const qc = useQueryClient();
-  const { incrementUnread } = useMessagingStore();
+  const { incrementUnread, setTyping, clearTyping } = useMessagingStore();
 
   useEffect(() => {
     if (!userId) return;
@@ -72,6 +72,14 @@ export function useMessagingSocket(userId: string | null | undefined) {
       void qc.invalidateQueries({ queryKey: ['conversations'] });
     });
 
+    socket.on('typing:start', ({ userId: typingId, conversationId: convId }: { userId: string; conversationId: string }) => {
+      setTyping(convId, typingId);
+    });
+
+    socket.on('typing:stop', ({ userId: typingId, conversationId: convId }: { userId: string; conversationId: string }) => {
+      clearTyping(convId, typingId);
+    });
+
     socket.on('connect_error', (err) => {
       // eslint-disable-next-line no-console
       console.warn('[messaging socket] connect error', err.message);
@@ -98,7 +106,7 @@ export function useMessagingSocket(userId: string | null | undefined) {
     const optimistic: MessageRecord = {
       id: optimisticId,
       conversationId,
-      senderId: userId ?? '',
+      sender: { id: userId ?? '', name: 'You' },
       tenantId: '',
       body,
       createdAt: new Date().toISOString(),
@@ -143,7 +151,17 @@ export function useMessagingSocket(userId: string | null | undefined) {
     sock?.emit('message:read', { conversationId });
   }
 
-  return { sendMessage, sendReadReceipt };
+  function sendTypingStart(conversationId: string) {
+    const sock = socketRef.current ?? globalSocket;
+    sock?.emit('typing:start', { conversationId });
+  }
+
+  function sendTypingStop(conversationId: string) {
+    const sock = socketRef.current ?? globalSocket;
+    sock?.emit('typing:stop', { conversationId });
+  }
+
+  return { sendMessage, sendReadReceipt, sendTypingStart, sendTypingStop };
 }
 
 export function disconnectMessagingSocket() {
