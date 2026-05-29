@@ -87,7 +87,7 @@ export default function MessagingPage() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] -m-4 md:-m-6 lg:-m-8 overflow-hidden">
+    <div className="fixed inset-x-0 top-14 bottom-14 md:bottom-0 md:left-56 flex overflow-hidden">
       {/* Left pane — conversation list */}
       <div className="w-80 shrink-0 hidden sm:flex flex-col">
         <ConversationList
@@ -98,35 +98,31 @@ export default function MessagingPage() {
         />
       </div>
 
-      {/* Right pane — active thread */}
-      <div className={`${activeConversationId ? 'flex' : 'hidden sm:flex'} flex-col flex-1 min-w-0`}>
-        {activeConversationId && activeConversation ? (
+      {/* Desktop right pane — always in DOM on sm+, bypasses mobile CSS-toggle bug */}
+      <div className="hidden sm:flex flex-col flex-1 min-w-0 overflow-hidden">
+        {activeConversationId ? (
           <>
-            {/* Header */}
             <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0">
-              <button
-                className="sm:hidden -ml-1 p-1 rounded-md text-muted-foreground hover:text-foreground"
-                onClick={() => setActiveConversation(null)}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
               <div>
                 <p className="font-semibold text-sm">
-                  {activeConversation.name ??
-                    (activeConversation.type === 'case_thread'
-                      ? 'Case Thread'
-                      : activeConversation.participants
-                          .filter((p) => p.userId !== user?.id)
-                          .map((p) => participantNames[p.userId] ?? 'Staff')
-                          .join(', '))}
+                  {activeConversation
+                    ? (activeConversation.name ??
+                        (activeConversation.type === 'case_thread'
+                          ? 'Case Thread'
+                          : activeConversation.participants
+                              .filter((p) => p.userId !== user?.id)
+                              .map((p) => participantNames[p.userId] ?? 'Staff')
+                              .join(', ')))
+                    : null}
                 </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {activeConversation.type.replace('_', ' ')} ·{' '}
-                  {activeConversation.participants.length} participants
-                </p>
+                {activeConversation && (
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {activeConversation.type.replace('_', ' ')} ·{' '}
+                    {activeConversation.participants.length} participants
+                  </p>
+                )}
               </div>
             </div>
-
             <MessageThread
               messages={messages}
               conversationId={activeConversationId}
@@ -145,6 +141,50 @@ export default function MessagingPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile thread — conditionally rendered (not CSS-toggled) so the flex column
+          always mounts fresh, avoiding the display:none→flex layout bug on iOS */}
+      {activeConversationId && (
+        <div className="flex sm:hidden flex-col flex-1 min-w-0 overflow-hidden">
+          <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0">
+            <button
+              className="-ml-1 p-1 rounded-md text-muted-foreground hover:text-foreground"
+              onClick={() => setActiveConversation(null)}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <p className="font-semibold text-sm">
+                {activeConversation
+                  ? (activeConversation.name ??
+                      (activeConversation.type === 'case_thread'
+                        ? 'Case Thread'
+                        : activeConversation.participants
+                            .filter((p) => p.userId !== user?.id)
+                            .map((p) => participantNames[p.userId] ?? 'Staff')
+                            .join(', ')))
+                  : null}
+              </p>
+              {activeConversation && (
+                <p className="text-xs text-muted-foreground capitalize">
+                  {activeConversation.type.replace('_', ' ')} ·{' '}
+                  {activeConversation.participants.length} participants
+                </p>
+              )}
+            </div>
+          </div>
+          <MessageThread
+            messages={messages}
+            conversationId={activeConversationId}
+            participantNames={participantNames}
+          />
+          <MessageInput
+            onSend={handleSend}
+            onTypingStart={() => sendTypingStart(activeConversationId)}
+            onTypingStop={() => sendTypingStop(activeConversationId)}
+          />
+        </div>
+      )}
 
       {/* Mobile conversation list — shown when no active conversation */}
       {!activeConversationId && (
