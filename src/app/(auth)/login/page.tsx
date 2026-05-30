@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { KevolaLogo } from '@/components/ui/logo';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { login } from '@/lib/api/auth';
 
@@ -113,9 +114,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <div className="mb-8">
+        <KevolaLogo />
+      </div>
       <Card className="w-full max-w-sm shadow-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-semibold">Sign in to Kelova</CardTitle>
+          <CardTitle className="text-2xl font-semibold">Sign in</CardTitle>
           <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
         </CardHeader>
         <CardContent>

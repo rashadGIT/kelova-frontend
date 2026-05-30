@@ -18,6 +18,7 @@ const BASE_TABS = [
   { label: 'Templates', href: '/settings/templates', directorOnly: false },
   { label: 'Intake Form', href: '/settings/intake', directorOnly: false },
   { label: 'Integrations', href: '/settings/integrations', directorOnly: false },
+  { label: 'Data', href: '/settings/data', directorOnly: true },
   { label: 'API & Webhooks', href: '/settings/api', directorOnly: false },
   { label: 'Multi-Location', href: '/settings/multi-location', directorOnly: true },
 ];

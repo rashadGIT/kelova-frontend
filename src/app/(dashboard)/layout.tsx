@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Main content area — offset on md+ to account for sidebar */}
         <div className="flex flex-col md:pl-56">
           <TopBar />
-          <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-8">{children}</main>
+          <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-8 animate-in fade-in duration-300">{children}</main>
         </div>
         <MobileNav />
       </MessagingProvider>

@@ -23,7 +23,7 @@
     --border:             35 20% 86%;
     --input:              35 20% 86%;
     --ring:               35 40% 45%;
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     --success:    142 60% 28%;
     --success-bg: 142 50% 95%;
@@ -31,6 +31,41 @@
     --warning-bg: 35  90% 95%;
     --info:       215 65% 35%;
     --info-bg:    215 60% 95%;
+  }
+}
+
+@layer base {
+  .dark {
+    /* GitHub dark palette — exact structural values */
+    --background:         215 28% 7%;    /* #0d1117 — GitHub canvas.default */
+    --foreground:         210 8% 91%;    /* #e6edf3 — GitHub fg.default */
+    --card:               215 22% 11%;   /* #161b22 — GitHub canvas.overlay */
+    --card-foreground:    210 8% 91%;
+    --popover:            214 20% 14%;   /* #1c2128 — GitHub canvas.inset */
+    --popover-foreground: 210 8% 91%;
+
+    /* Inverted primary: light button on dark bg, matching GitHub's button style */
+    --primary:            210 8% 91%;
+    --primary-foreground: 215 28% 7%;
+
+    --secondary:          213 12% 16%;   /* #21262d — GitHub neutral.muted */
+    --secondary-foreground: 210 6% 75%;
+    --muted:              213 12% 14%;
+    --muted-foreground:   214 8% 56%;    /* #848d97 — GitHub fg.muted */
+    --accent:             213 12% 17%;   /* GitHub hover.overlay */
+    --accent-foreground:  210 8% 91%;
+    --destructive:        3 68% 62%;     /* #f85149 — GitHub danger */
+    --destructive-foreground: 0 0% 98%;
+    --border:             212 12% 21%;   /* #30363d — GitHub border.default */
+    --input:              213 12% 14%;
+    --ring:               212 72% 67%;   /* #58a6ff — GitHub accent.fg blue for focus */
+
+    --success:    137 55% 44%;           /* #3fb950 — GitHub success */
+    --success-bg: 137 40% 9%;
+    --warning:    36  70% 52%;
+    --warning-bg: 36  60% 9%;
+    --info:       212 90% 65%;           /* #58a6ff */
+    --info-bg:    212 60% 9%;
   }
 }
 

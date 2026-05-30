@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { FolderOpen, AlertCircle, CalendarDays, FileSignature, DollarSign, AlertTriangle, Users } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { FolderOpen, AlertCircle, CalendarDays, FileSignature, DollarSign, AlertTriangle, Users, BarChart2 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { RecentCasesTable } from '@/components/dashboard/recent-cases-table';
@@ -31,52 +32,45 @@ function getLast12Months(): string[] {
 
 function MonthlyBarChart({ data }: { data: { month: string; count: number; revenue: number }[] }) {
   const dataMap = new Map(data.map((d) => [d.month, d]));
-  const slots = getLast12Months().map((month) => dataMap.get(month) ?? { month, count: 0, revenue: 0 });
-  const maxCount = Math.max(...slots.map((d) => d.count), 1);
-  const BAR_HEIGHT_PX = 128;
+  const slots = getLast12Months().map((month) => {
+    const entry = dataMap.get(month) ?? { month, count: 0, revenue: 0 };
+    const [, mm] = month.split('-');
+    return { ...entry, label: MONTH_LABELS[parseInt(mm, 10) - 1]! };
+  });
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-end gap-1" style={{ height: BAR_HEIGHT_PX }}>
-        {slots.map((d) => {
-          const [yyyy, mm] = d.month.split('-');
-          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1]!;
-          const barHeight = Math.max(Math.round((d.count / maxCount) * BAR_HEIGHT_PX), 4);
-          return (
-            <div key={d.month} className="flex-1 flex flex-col items-end relative">
-              <div
-                className={`w-full rounded-t-sm transition-all relative ${d.count > 0 ? 'bg-primary/80' : 'bg-muted'}`}
-                style={{ height: d.count > 0 ? barHeight : 4 }}
-                title={`${monthLabel} ${yyyy}: ${d.count} cases, ${formatCurrency(d.revenue)}`}
-              >
-                {d.count > 0 && (
-                  <span className="absolute -top-5 left-0 right-0 text-center text-[10px] text-muted-foreground">
-                    {d.count}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex gap-1">
-        {slots.map((d, i) => {
-          const [yyyy, mm] = d.month.split('-');
-          const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1]!;
-          const isJan = mm === '01';
-          const prevYear = i > 0 ? slots[i - 1].month.split('-')[0] : yyyy;
-          const showYear = isJan && yyyy !== prevYear;
-          return (
-            <div key={d.month} className="flex-1 text-center overflow-hidden">
-              <span className="text-[10px] text-muted-foreground block truncate">{monthLabel}</span>
-              {showYear && (
-                <span className="text-[9px] text-muted-foreground/60 block">{yyyy}</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <ResponsiveContainer width="100%" height={148}>
+      <BarChart data={slots} margin={{ top: 4, right: 0, left: 0, bottom: 0 }} barCategoryGap="28%">
+        <XAxis
+          dataKey="label"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fontSize: 11, fill: 'hsl(220 10% 45%)' }}
+        />
+        <Tooltip
+          cursor={{ fill: 'hsl(35 15% 92%)', radius: 4 }}
+          contentStyle={{
+            borderRadius: 8,
+            border: '1px solid hsl(35 20% 86%)',
+            fontSize: 12,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          }}
+          formatter={(value, name) => {
+            const n = Number(value);
+            return name === 'count' ? [n, 'Cases'] : [formatCurrency(n), 'Revenue'];
+          }}
+        />
+        <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={36}>
+          {slots.map((entry, idx) => (
+            <Cell
+              key={idx}
+              fill={entry.count > 0 ? 'hsl(220 25% 18%)' : 'hsl(35 15% 88%)'}
+              fillOpacity={entry.count > 0 ? 0.82 : 1}
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -222,33 +216,40 @@ function DirectorDashboard() {
           <CardContent>
             {revenueLoading ? (
               <Skeleton className="h-40 w-full" />
-            ) : revenue && revenue.revenueByServiceType.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="pb-2 text-left font-medium text-muted-foreground">Service Type</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Cases</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Revenue</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Avg</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
+            ) : revenue && revenue.revenueByServiceType.length > 0 ? (() => {
+                const maxRev = Math.max(...revenue.revenueByServiceType.map((r) => r.revenue), 1);
+                return (
+                  <div className="space-y-3">
                     {revenue.revenueByServiceType.map((row) => (
-                      <tr key={row.serviceType}>
-                        <td className="py-2 capitalize">{row.serviceType}</td>
-                        <td className="py-2 text-right">{row.count}</td>
-                        <td className="py-2 text-right">{formatCurrency(row.revenue)}</td>
-                        <td className="py-2 text-right text-muted-foreground">
-                          {row.count > 0 ? formatCurrency(row.revenue / row.count) : '—'}
-                        </td>
-                      </tr>
+                      <div key={row.serviceType} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="capitalize font-medium">{row.serviceType}</span>
+                          <div className="flex items-center gap-3 text-right">
+                            <span className="text-muted-foreground tabular-nums text-xs">{row.count} case{row.count !== 1 ? 's' : ''}</span>
+                            <span className="font-medium tabular-nums w-20 text-right">{formatCurrency(row.revenue)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary/70 rounded-full transition-all duration-500"
+                              style={{ width: `${(row.revenue / maxRev) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground w-20 text-right tabular-nums">
+                            {row.count > 0 ? `${formatCurrency(row.revenue / row.count)} avg` : '—'}
+                          </span>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                );
+              })() : (
+              <div className="py-8 flex flex-col items-center gap-2 text-center">
+                <BarChart2 className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">No revenue data yet.</p>
+                <p className="text-xs text-muted-foreground/60">Data will appear once cases have payments recorded.</p>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No data available.</p>
             )}
           </CardContent>
         </Card>
@@ -296,7 +297,11 @@ function DirectorDashboard() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No staff members found.</p>
+            <div className="py-8 flex flex-col items-center gap-2 text-center">
+              <Users className="h-8 w-8 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No staff members found.</p>
+              <p className="text-xs text-muted-foreground/60">Invite staff from Settings to see workload here.</p>
+            </div>
           )}
         </CardContent>
       </Card>

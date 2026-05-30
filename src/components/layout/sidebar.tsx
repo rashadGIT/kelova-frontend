@@ -22,11 +22,14 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils/cn';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useAdminStore } from '@/lib/store/admin.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMessagingStore } from '@/lib/store/messaging.store';
+import { useAuthStore } from '@/lib/store/auth.store';
+import { KevolaLogo } from '@/components/ui/logo';
 
 const regularNavItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard, exact: true },
@@ -65,12 +68,15 @@ function NavLink({
       onClick={onClick}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+        'relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
         isActive
           ? 'bg-accent text-accent-foreground font-semibold'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground font-normal',
+          : 'text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground font-normal',
       )}
     >
+      {isActive && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-ring rounded-r-full" />
+      )}
       <Icon className="h-4 w-4 shrink-0" />
       <span className="flex-1">{item.label}</span>
       {!!badge && badge > 0 && (
@@ -84,16 +90,48 @@ function NavLink({
 
 function TenantViewBanner({ name, onExit }: { name: string; onExit: () => void }) {
   return (
-    <div className="mx-3 mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
-      <p className="text-xs text-amber-700 font-medium truncate">Viewing</p>
+    <div className="mx-3 mb-3 rounded-md border border-[hsl(var(--warning-bg))] bg-[hsl(var(--warning-bg))] px-3 py-2">
+      <p className="text-xs text-[hsl(var(--warning))] font-medium truncate">Viewing</p>
       <p className="text-xs font-semibold truncate">{name}</p>
       <button
         onClick={onExit}
-        className="mt-1.5 flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 transition-colors"
+        className="mt-1.5 flex items-center gap-1 text-xs text-[hsl(var(--warning))] hover:opacity-80 transition-opacity"
       >
         <LogOut className="h-3 w-3" />
         Exit tenant view
       </button>
+    </div>
+  );
+}
+
+function SidebarUserFooter() {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return null;
+
+  const initials = user.name
+    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
+
+  const ROLE_LABELS: Record<string, string> = {
+    super_admin: 'Super Admin',
+    funeral_director: 'Director',
+    staff: 'Staff',
+  };
+
+  return (
+    <div className="border-t px-3 py-3">
+      <div className="flex items-center gap-3 rounded-md px-2 py-2">
+        <Avatar className="h-7 w-7 shrink-0">
+          <AvatarImage src={user.picture} alt={user.name} referrerPolicy="no-referrer" />
+          <AvatarFallback className="text-[11px] font-medium">{initials}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium truncate leading-tight">{user.name}</p>
+          <p className="text-[11px] text-muted-foreground truncate leading-tight">
+            {ROLE_LABELS[user.role] ?? user.role}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -129,8 +167,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo / brand */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b">
-        <span className="text-lg font-semibold tracking-tight">Kelova</span>
+      <div className="flex items-center px-4 py-4 border-b">
+        <KevolaLogo />
       </div>
 
       {/* Tenant view banner */}
@@ -158,6 +196,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           ))
         )}
       </nav>
+
+      <SidebarUserFooter />
     </div>
   );
 }

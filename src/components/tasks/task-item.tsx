@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils/cn';
+import { Checkbox } from '@/components/ui/checkbox';
 import { updateTask } from '@/lib/api/tasks';
 import { formatDate, isOverdue } from '@/lib/utils/format-date';
 import type { ITask } from '@/types';
@@ -22,20 +23,20 @@ export function TaskItem({ task, caseId }: { task: ITask; caseId: string }) {
 
   return (
     <div className={cn(
-      'flex items-start gap-3 py-3 border-b last:border-0',
+      'flex items-start gap-3 py-3 border-b last:border-0 transition-opacity',
       task.completed && 'opacity-50',
     )}>
-      <input
-        type="checkbox"
+      <Checkbox
         checked={task.completed}
-        onChange={(e) => mutation.mutate(e.target.checked)}
-        className="mt-0.5 h-4 w-4 rounded cursor-pointer"
+        onCheckedChange={(checked) => mutation.mutate(checked)}
+        disabled={mutation.isPending}
+        className="mt-0.5 shrink-0"
       />
       <div className="flex-1 min-w-0">
         <p className={cn('text-sm', task.completed && 'line-through')}>{task.title}</p>
         {task.dueDate && (
-          <p className={cn('text-xs mt-0.5', overdue ? 'text-red-600 font-medium' : 'text-muted-foreground')}>
-            Due {formatDate(task.dueDate)} {overdue && '— Overdue'}
+          <p className={cn('text-xs mt-0.5', overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+            Due {formatDate(task.dueDate)}{overdue && ' — Overdue'}
           </p>
         )}
       </div>
