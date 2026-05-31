@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MoreHorizontal, Plus, UserCheck, UserX } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
+import { extractErrorMessage } from '@/lib/utils/error-message';
 
 type StaffMember = {
   id: string;
@@ -63,8 +64,7 @@ export default function StaffPage() {
       setInviteEmail(''); setInviteName(''); setInviteRole('staff');
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to send invitation.';
-      toast.error(msg);
+      toast.error(extractErrorMessage(err, 'Failed to send invitation.'));
     },
   });
 

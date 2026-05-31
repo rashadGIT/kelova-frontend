@@ -37,6 +37,7 @@ import {
   type TenantSearchResult,
   type LocationInvite,
 } from '@/lib/api/multi-location';
+import { extractErrorMessage } from '@/lib/utils/error-message';
 
 function daysUntil(dateStr: string) {
   const diff = new Date(dateStr).getTime() - Date.now();
@@ -113,10 +114,7 @@ export default function MultiLocationSettingsPage() {
       setExpiresInDays('7');
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Failed to send invite.';
-      toast.error(msg);
+      toast.error(extractErrorMessage(err, 'Failed to send invite.'));
     },
   });
 
@@ -128,10 +126,7 @@ export default function MultiLocationSettingsPage() {
       toast.success('Invite accepted. You are now part of a location group.');
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Failed to accept invite.';
-      toast.error(msg);
+      toast.error(extractErrorMessage(err, 'Failed to accept invite.'));
     },
   });
 

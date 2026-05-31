@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { createAdminUser, getAdminTenants } from '@/lib/api/admin';
+import { extractErrorMessage } from '@/lib/utils/error-message';
 import { UserRole } from '@/types';
 
 const ROLES = [UserRole.funeral_director, UserRole.staff] as const;
@@ -43,7 +44,7 @@ function NewAdminUserForm() {
       toast.success(`User ${email} created.`);
       router.push('/super-admin/users');
     },
-    onError: (err: Error) => toast.error(err.message ?? 'Failed to create user'),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err, 'Failed to create user')),
   });
 
   const isValid = email && name && role && tenantId && temporaryPassword.length >= 12;

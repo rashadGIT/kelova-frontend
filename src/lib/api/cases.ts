@@ -54,3 +54,8 @@ export async function updateCaseStatus(id: string, status: CaseStatus): Promise<
   const res = await apiClient.patch<ICase>(`/cases/${id}/status`, { status });
   return res.data;
 }
+
+export async function sendIntakeForm(caseId: string): Promise<{ sent: boolean; email: string }> {
+  const res = await apiClient.post<{ sent: boolean; email: string }>(`/cases/${caseId}/send-intake-form`);
+  return res.data;
+}

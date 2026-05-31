@@ -1,63 +1,159 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle2, Clock, FileText, Upload, User } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock,
+  FileText,
+  Upload,
+  Phone,
+  Calendar,
+  Heart,
+  CalendarCheck,
+  FileCheck2,
+  ClipboardList,
+  Star,
+  Sparkles,
+  ClipboardEdit,
+  Send,
+} from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { publicApiClient } from '@/lib/api/public-client';
+import { cn } from '@/lib/utils/cn';
 import type { PortalData } from './page';
 
-const STAGE_LABELS: Record<string, string> = {
-  first_call: 'First Call',
-  arrangement_scheduled: 'Arrangement Scheduled',
-  arrangement_complete: 'Arrangements Complete',
-  in_preparation: 'In Preparation',
-  services_scheduled: 'Services Scheduled',
-  services_complete: 'Services Complete',
-  death_cert_filed: 'Death Certificate Filed',
-  closed: 'Closed',
+const STAGE_ORDER = [
+  'first_call',
+  'arrangement_scheduled',
+  'arrangement_complete',
+  'in_preparation',
+  'services_scheduled',
+  'services_complete',
+  'death_cert_filed',
+  'closed',
+] as const;
+
+type StageName = (typeof STAGE_ORDER)[number];
+
+const STAGE_CONFIG: Record<StageName, {
+  label: string;
+  description: (firstName: string) => string;
+  Icon: React.ElementType;
+}> = {
+  first_call: {
+    label: 'In Our Care',
+    description: (n) => `We've received notice and are beginning arrangements for ${n} with care.`,
+    Icon: Phone,
+  },
+  arrangement_scheduled: {
+    label: 'Planning Together',
+    description: () => "We're working with your family to plan a meaningful, personal service.",
+    Icon: Calendar,
+  },
+  arrangement_complete: {
+    label: 'Details Finalized',
+    description: () => 'All service details have been thoughtfully finalized.',
+    Icon: ClipboardList,
+  },
+  in_preparation: {
+    label: 'Preparation',
+    description: (n) => `${n} is being carefully and respectfully prepared in our care.`,
+    Icon: Heart,
+  },
+  services_scheduled: {
+    label: 'Service Arranged',
+    description: () => 'The service date and all details have been confirmed.',
+    Icon: CalendarCheck,
+  },
+  services_complete: {
+    label: 'Service Held',
+    description: () => 'We were honored to help your family say goodbye.',
+    Icon: Star,
+  },
+  death_cert_filed: {
+    label: 'Final Paperwork',
+    description: () => 'We are processing the official documentation on your behalf.',
+    Icon: FileCheck2,
+  },
+  closed: {
+    label: 'Complete',
+    description: (n) => `All arrangements for ${n} are complete. Thank you for trusting us.`,
+    Icon: Sparkles,
+  },
 };
 
-const STAGE_ORDER = Object.keys(STAGE_LABELS);
-
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  new: 'secondary',
-  in_progress: 'default',
-  completed: 'default',
-  archived: 'outline',
+const SERVICE_TYPE_LABEL: Record<string, string> = {
+  burial: 'Burial Service',
+  cremation: 'Cremation Service',
+  graveside: 'Graveside Service',
+  memorial: 'Memorial Service',
 };
 
-function StageTimeline({ currentStage }: { currentStage: string }) {
-  const currentIndex = STAGE_ORDER.indexOf(currentStage);
+function StageTimeline({ currentStage, firstName }: { currentStage: string; firstName: string }) {
+  const currentIndex = STAGE_ORDER.indexOf(currentStage as StageName);
+
   return (
-    <div className="space-y-2">
+    <div>
       {STAGE_ORDER.map((stage, i) => {
+        const config = STAGE_CONFIG[stage];
         const isDone = i < currentIndex;
         const isCurrent = i === currentIndex;
+        const isUpcoming = i > currentIndex;
+        const isLast = i === STAGE_ORDER.length - 1;
+        const { Icon } = config;
+
         return (
-          <div key={stage} className="flex items-center gap-3">
-            <div className="flex flex-col items-center">
-              <div className={`w-3 h-3 rounded-full border-2 transition-colors ${
-                isDone ? 'bg-primary border-primary'
-                  : isCurrent ? 'bg-primary/20 border-primary'
-                  : 'bg-muted border-muted-foreground/30'
-              }`} />
-              {i < STAGE_ORDER.length - 1 && (
-                <div className={`w-0.5 h-5 ${isDone ? 'bg-primary' : 'bg-muted'}`} />
-              )}
+          <div key={stage}>
+            <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center pt-0.5">
+                {isDone ? (
+                  <CheckCircle2
+                    className="h-6 w-6 flex-shrink-0"
+                    style={{ color: 'hsl(var(--success))' }}
+                  />
+                ) : isCurrent ? (
+                  <div className="h-10 w-10 rounded-full bg-primary ring-4 ring-primary/15 flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                ) : (
+                  <div className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/25 flex-shrink-0" />
+                )}
+                {!isLast && (
+                  <div
+                    className={cn(
+                      'w-px mt-1',
+                      isDone ? 'bg-[hsl(var(--success))]' : 'bg-border',
+                      isCurrent ? 'h-8' : 'h-5',
+                    )}
+                  />
+                )}
+              </div>
+
+              <div className={cn('pb-4', isCurrent && 'pb-6')}>
+                <p
+                  className={cn(
+                    isCurrent && 'text-base font-semibold text-foreground',
+                    isDone && 'text-sm text-muted-foreground',
+                    isUpcoming && 'text-sm text-muted-foreground/50',
+                  )}
+                >
+                  {config.label}
+                  {isCurrent && (
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">(current)</span>
+                  )}
+                </p>
+                {isCurrent && (
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    {config.description(firstName)}
+                  </p>
+                )}
+              </div>
             </div>
-            <span className={`text-sm pb-4 ${
-              isCurrent ? 'font-semibold text-primary'
-                : isDone ? 'text-muted-foreground line-through'
-                : 'text-muted-foreground'
-            }`}>
-              {STAGE_LABELS[stage] ?? stage}
-              {isCurrent && <span className="ml-2 text-xs font-normal">(current)</span>}
-            </span>
           </div>
         );
       })}
@@ -65,27 +161,54 @@ function StageTimeline({ currentStage }: { currentStage: string }) {
   );
 }
 
-function DocumentRow({ doc }: { doc: { id: string; fileName: string; documentType: string; uploaded: boolean } }) {
+function ServiceDetailsCard({ serviceType, createdAt }: { serviceType: string; createdAt: string }) {
+  return (
+    <Card className="p-5">
+      <div className="space-y-3 text-base">
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Service</span>
+          <span className="font-medium capitalize">{serviceType}</span>
+        </div>
+        <Separator />
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Care began</span>
+          <span className="font-medium">
+            {new Date(createdAt).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function DocumentRow({
+  doc,
+}: {
+  doc: { id: string; fileName: string; documentType: string; uploaded: boolean };
+}) {
   return (
     <div className="flex items-center gap-3 py-3 border-b last:border-0">
       <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{doc.fileName}</p>
-        <p className="text-xs text-muted-foreground capitalize">{doc.documentType.replace(/_/g, ' ')}</p>
+        <p className="text-xs text-muted-foreground capitalize">
+          {doc.documentType.replace(/_/g, ' ')}
+        </p>
       </div>
-      {doc.uploaded
-        ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-        : <Clock className="h-4 w-4 text-amber-500 shrink-0" />}
+      {doc.uploaded ? (
+        <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: 'hsl(var(--success))' }} />
+      ) : (
+        <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+      )}
     </div>
   );
 }
 
-interface UploadButtonProps {
-  accessToken: string;
-  onUploaded: () => void;
-}
-
-function UploadButton({ accessToken, onUploaded }: UploadButtonProps) {
+function UploadButton({ accessToken, onUploaded }: { accessToken: string; onUploaded: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -94,19 +217,13 @@ function UploadButton({ accessToken, onUploaded }: UploadButtonProps) {
     try {
       const { data } = await publicApiClient.post<{ uploadUrl: string; documentId: string }>(
         `/family-portal/${accessToken}/documents`,
-        {
-          fileName: file.name,
-          contentType: file.type || 'application/octet-stream',
-          documentType: 'other',
-        },
+        { fileName: file.name, contentType: file.type || 'application/octet-stream', documentType: 'other' },
       );
-
       await fetch(data.uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type || 'application/octet-stream' },
       });
-
       toast.success(`${file.name} uploaded successfully`);
       onUploaded();
     } catch {
@@ -136,22 +253,40 @@ function UploadButton({ accessToken, onUploaded }: UploadButtonProps) {
         className="flex items-center gap-2"
       >
         <Upload className="h-4 w-4" />
-        {uploading ? 'Uploading…' : 'Upload Document'}
+        {uploading ? 'Uploading…' : 'Share a Document'}
       </Button>
     </>
   );
 }
 
-export function FamilyPortalView({
-  data,
-  accessToken,
-}: {
-  data: PortalData;
-  accessToken: string;
-}) {
+export function FamilyPortalView({ data, accessToken }: { data: PortalData; accessToken: string }) {
   const [docs, setDocs] = useState(data.documents);
   const [refreshing, setRefreshing] = useState(false);
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
   const caseData = data.case!;
+
+  const firstName = caseData.deceasedName.split(' ')[0];
+  const serviceLabel = SERVICE_TYPE_LABEL[caseData.serviceType] ?? caseData.serviceType;
+  const primaryContact = data.contacts.find((c) => c.isPrimaryContact);
+  const isClosed = caseData.stage === 'closed';
+  const infoSubmitted = Boolean(caseData.familyInfoSubmittedAt);
+
+  async function sendMessage() {
+    if (!message.trim()) return;
+    setSending(true);
+    try {
+      await publicApiClient.post(`/family-portal/${accessToken}/messages`, { body: message.trim() });
+      setMessage('');
+      setMessageSent(true);
+      toast.success('Message sent. We will be in touch soon.');
+    } catch {
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function refreshDocs() {
     setRefreshing(true);
@@ -167,122 +302,222 @@ export function FamilyPortalView({
     }
   }
 
-  const primaryContact = data.contacts.find((c) => c.isPrimaryContact);
-  const serviceLabel = caseData.serviceType.charAt(0).toUpperCase() + caseData.serviceType.slice(1);
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b px-4 py-5 sm:px-6">
-        <div className="max-w-lg mx-auto">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Arrangement Status</p>
-          <h1 className="text-xl font-semibold">{caseData.deceasedName}</h1>
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <Badge variant={STATUS_VARIANT[caseData.status] ?? 'secondary'} className="capitalize">
-              {caseData.status.replace(/_/g, ' ')}
-            </Badge>
-            <span className="text-sm text-muted-foreground">{serviceLabel} Service</span>
+
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      {/* Mobile: compact, stacked. Desktop: wider, name at 5xl, status in top-right */}
+      <div className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-5 py-8 md:px-12 md:py-12">
+          <div className="md:flex md:items-end md:justify-between md:gap-8">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                {isClosed ? 'In Loving Memory' : "We're caring for"}
+              </p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground leading-tight">
+                {caseData.deceasedName}
+              </h1>
+              <p className="text-base text-muted-foreground mt-2">{serviceLabel}</p>
+            </div>
+
+            {/* Desktop only: quiet status pill in header */}
+            <div className="hidden md:flex items-center gap-2.5 shrink-0 pb-1">
+              <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: 'hsl(var(--success))' }} />
+              <span className="text-sm text-muted-foreground">
+                {isClosed ? 'All arrangements complete' : 'No action needed from you'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="max-w-lg mx-auto px-4 py-6 sm:px-6">
-        <Tabs defaultValue="status">
-          <TabsList className="w-full mb-6">
-            <TabsTrigger value="status" className="flex-1">Status</TabsTrigger>
-            <TabsTrigger value="documents" className="flex-1">
-              Documents{docs.length > 0 && ` (${docs.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="contacts" className="flex-1">Contacts</TabsTrigger>
-          </TabsList>
+      {/* ── Body ─────────────────────────────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-5 py-8 md:px-12 md:py-10">
 
-          {/* Status Tab */}
-          <TabsContent value="status" className="space-y-5">
-            <Card className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">Progress</p>
-              <StageTimeline currentStage={caseData.stage} />
-            </Card>
+        {/*
+         * Layout strategy:
+         *   Mobile  → flex-col, natural top-to-bottom order: reassurance first, then sidebar content
+         *   Desktop → 2-col grid: left = sticky sidebar (stepper + details), right = main content
+         *
+         * We flip order with order-1/order-2 so that on mobile the reassurance card
+         * appears before the stepper, while on desktop they land in separate columns.
+         */}
+        <div className="flex flex-col md:grid md:grid-cols-[280px_1fr] md:gap-12 md:items-start">
 
-            <Card className="p-4 space-y-3">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Case Details</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Case opened</span>
-                  <span>{new Date(caseData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Service type</span>
-                  <span className="capitalize">{caseData.serviceType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Current stage</span>
-                  <span>{STAGE_LABELS[caseData.stage] ?? caseData.stage}</span>
-                </div>
-              </div>
-            </Card>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Questions? Contact your funeral home directly.
-            </p>
-          </TabsContent>
-
-          {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{docs.length} document{docs.length !== 1 ? 's' : ''}</p>
-              <UploadButton accessToken={accessToken} onUploaded={refreshDocs} />
+          {/* ── LEFT SIDEBAR (desktop) / after reassurance (mobile) ──────── */}
+          <div className="order-2 md:order-1 mt-6 md:mt-0 md:sticky md:top-8 space-y-6">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">
+                Where Things Stand
+              </p>
+              <Card className="p-5">
+                <StageTimeline currentStage={caseData.stage} firstName={firstName} />
+              </Card>
             </div>
 
-            <Card className="p-4">
-              {refreshing ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ) : docs.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-sm">No documents yet</p>
-                  <p className="text-xs mt-1">Upload certificates, IDs, or other paperwork</p>
-                </div>
-              ) : (
-                docs.map((doc) => <DocumentRow key={doc.id} doc={doc} />)
-              )}
-            </Card>
-          </TabsContent>
-
-          {/* Contacts Tab */}
-          <TabsContent value="contacts" className="space-y-3">
-            {data.contacts.length === 0 ? (
-              <Card className="p-6 text-center text-muted-foreground text-sm">No contacts on file</Card>
-            ) : (
-              data.contacts.map((contact) => (
-                <Card key={contact.id} className="p-4 flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-sm">{contact.name}</p>
-                      {contact.isPrimaryContact && (
-                        <Badge variant="secondary" className="text-xs">Primary</Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 capitalize">{contact.relationship}</p>
-                  </div>
-                </Card>
-              ))
-            )}
-
-            {primaryContact && (
-              <p className="text-xs text-center text-muted-foreground pt-2">
-                Portal access is linked to {primaryContact.name}
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                Service Details
               </p>
+              <ServiceDetailsCard serviceType={caseData.serviceType} createdAt={caseData.createdAt} />
+            </div>
+          </div>
+
+          {/* ── RIGHT MAIN (desktop) / top of scroll (mobile) ────────────── */}
+          <div className="order-1 md:order-2 space-y-6">
+
+            {/* Action card — conditional on info form status */}
+            {!infoSubmitted && !isClosed ? (
+              <Card className="p-5 flex items-start gap-4 border-[hsl(var(--warning))]"
+                style={{ background: 'hsl(var(--warning-bg))' }}>
+                <ClipboardEdit
+                  className="h-6 w-6 flex-shrink-0 mt-0.5 shrink-0"
+                  style={{ color: 'hsl(var(--warning))' }}
+                />
+                <div className="flex-1">
+                  <p className="text-base font-medium text-foreground">
+                    We need some information from you
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Please fill out the arrangement information form so we have everything
+                    we need to proceed. It takes about 5 minutes.
+                  </p>
+                  <Link
+                    href={`/family/${accessToken}/info-form`}
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    <ClipboardEdit className="h-4 w-4" />
+                    Fill Out Information Form
+                  </Link>
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-5 flex items-start gap-4">
+                <CheckCircle2
+                  className="h-6 w-6 flex-shrink-0 mt-0.5"
+                  style={{ color: 'hsl(var(--success))' }}
+                />
+                <div>
+                  <p className="text-base font-medium text-foreground">
+                    {isClosed
+                      ? 'All arrangements are complete.'
+                      : "There's nothing you need to do right now."}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    {isClosed
+                      ? `Thank you for trusting us to care for ${firstName}. We are honored to have served your family.`
+                      : "We'll reach out if we need anything from you. You can check this page anytime for updates."}
+                  </p>
+                </div>
+              </Card>
             )}
-          </TabsContent>
-        </Tabs>
+
+            {/* Documents */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">Documents</p>
+                <UploadButton accessToken={accessToken} onUploaded={refreshDocs} />
+              </div>
+              <Card className="p-5">
+                {refreshing ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ) : docs.length === 0 ? (
+                  <div className="text-center py-6">
+                    <FileText className="h-8 w-8 mx-auto mb-3 text-muted-foreground/40" />
+                    <p className="text-base text-muted-foreground">No documents yet</p>
+                    <p className="text-sm text-muted-foreground/70 mt-1">
+                      You can share certificates, IDs, or other paperwork using the button above.
+                    </p>
+                  </div>
+                ) : (
+                  docs.map((doc) => <DocumentRow key={doc.id} doc={doc} />)
+                )}
+              </Card>
+            </div>
+
+            {/* Family contacts */}
+            {data.contacts.length > 0 && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                  Family Contacts
+                </p>
+                <div className="space-y-3">
+                  {data.contacts.map((contact) => (
+                    <Card key={contact.id} className="p-4 flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-base font-semibold text-muted-foreground">
+                        {contact.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-medium truncate">{contact.name}</p>
+                        <p className="text-sm text-muted-foreground capitalize">{contact.relationship}</p>
+                      </div>
+                      {contact.isPrimaryContact && (
+                        <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full border border-border shrink-0">
+                          Primary
+                        </span>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Send us a message */}
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                Send Us a Message
+              </p>
+              <Card className="p-5">
+                {messageSent ? (
+                  <div className="flex items-center gap-3 py-2">
+                    <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: 'hsl(var(--success))' }} />
+                    <p className="text-base text-muted-foreground">
+                      Message received. We will be in touch soon.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <textarea
+                      className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+                      rows={3}
+                      placeholder="Ask a question or share anything on your mind…"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      disabled={sending || !message.trim()}
+                      onClick={sendMessage}
+                      className="flex items-center gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      {sending ? 'Sending…' : 'Send Message'}
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      <div className="border-t mt-4">
+        <div className="max-w-5xl mx-auto px-5 py-8 md:px-12 text-center md:text-left">
+          <p className="text-sm text-muted-foreground">
+            Questions or concerns? Please contact your funeral home directly.
+          </p>
+          {primaryContact && (
+            <p className="text-xs text-muted-foreground/50 mt-1">
+              Portal access is linked to {primaryContact.name}
+            </p>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
