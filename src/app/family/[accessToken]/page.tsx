@@ -8,6 +8,7 @@ interface PortalCase {
   stage: string;
   serviceType: string;
   createdAt: string;
+  familyInfoSubmittedAt: string | null;
 }
 
 interface PortalDocument {

@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, ChevronRight } from 'lucide-react';
 import { getAdminTenants, createAdminTenant, type AdminTenant } from '@/lib/api/admin';
+import { extractErrorMessage } from '@/lib/utils/error-message';
 
 const PLAN_TIERS = ['pilot', 'starter', 'growth', 'enterprise'] as const;
 
@@ -34,7 +35,7 @@ function CreateTenantDialog({ onSuccess }: { onSuccess: () => void }) {
       setSlug('');
       onSuccess();
     },
-    onError: (err: Error) => toast.error(err.message ?? 'Failed to create tenant'),
+    onError: (err: unknown) => toast.error(extractErrorMessage(err, 'Failed to create tenant')),
   });
 
   const autoSlug = (value: string) =>

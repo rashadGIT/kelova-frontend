@@ -6,19 +6,17 @@ interface IntakePageProps {
 
 export default async function IntakePage({ params }: IntakePageProps) {
   const { tenantSlug } = await params;
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile-first container — D-07 */}
-      <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold">Begin Service Arrangements</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Please fill out the form below. Our team will follow up shortly.
-          </p>
-        </div>
 
-        <IntakeForm tenantSlug={tenantSlug} />
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4">
+      <div className="w-full max-w-lg">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <IntakeForm tenantSlug={tenantSlug} />
+        </div>
+        <p className="text-center text-xs text-slate-400 mt-6 leading-relaxed">
+          Your information is kept private and shared only with the funeral home.
+          All data is transmitted securely.
+        </p>
       </div>
     </div>
   );

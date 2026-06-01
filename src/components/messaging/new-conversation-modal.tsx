@@ -21,6 +21,7 @@ import {
   type ConversationSummary,
 } from '@/lib/api/messaging';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { extractErrorMessage } from '@/lib/utils/error-message';
 
 interface NewConversationModalProps {
   open: boolean;
@@ -53,8 +54,8 @@ export function NewConversationModal({
       setSelected([]);
       setSearch('');
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? 'Failed to start conversation');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Failed to start conversation'));
     },
   });
 
