@@ -2,6 +2,15 @@ import type { NextConfig } from 'next';
 import path from 'path';
 import { withSentryConfig } from '@sentry/nextjs';
 
+if (
+  process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' &&
+  process.env.NODE_ENV === 'production'
+) {
+  throw new Error(
+    'FATAL: NEXT_PUBLIC_DEV_AUTH_BYPASS must not be true in a production build. Aborting.',
+  );
+}
+
 const nextConfig: NextConfig = {
   transpilePackages: ['@kelova/shared-types'],
   eslint: {
