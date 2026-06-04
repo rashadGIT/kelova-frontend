@@ -33,9 +33,9 @@ const nextConfig: NextConfig = {
   // This keeps all browser → API traffic same-origin (HTTPS) and avoids mixed-content blocks.
   async rewrites() {
     return {
-      // afterFiles: Next.js checks explicit route handlers first; only falls through to the
-      // rewrite if no handler matched (i.e. not /api/auth/exchange, /api/auth/login, etc.).
-      afterFiles: [
+      // fallback: only runs when no page or route handler matched.
+      // Specific handlers like /api/auth/exchange take full precedence.
+      fallback: [
         {
           source: '/api/:path*',
           destination: `${BACKEND_URL}/:path*`,
