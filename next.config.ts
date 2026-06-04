@@ -11,6 +11,11 @@ if (
   );
 }
 
+const BACKEND_URL =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'http://localhost:3001';
+
 const nextConfig: NextConfig = {
   transpilePackages: ['@kelova/shared-types'],
   eslint: {
@@ -23,6 +28,20 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
+  },
+  // Proxy /api/* to the backend, except for routes that have their own handler.
+  // This keeps all browser → API traffic same-origin (HTTPS) and avoids mixed-content blocks.
+  async rewrites() {
+    return {
+      // fallback: only runs when no page or route handler matched.
+      // Specific handlers like /api/auth/exchange take full precedence.
+      fallback: [
+        {
+          source: '/api/:path*',
+          destination: `${BACKEND_URL}/:path*`,
+        },
+      ],
+    };
   },
 };
 
