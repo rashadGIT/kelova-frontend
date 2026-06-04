@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+function resolveApiUrl(): string {
+  const candidates = [
+    process.env.API_URL,
+    process.env.NEXT_PUBLIC_API_URL,
+    'http://localhost:3001',
+  ];
+  for (const candidate of candidates) {
+    if (candidate) {
+      try {
+        new URL(candidate);
+        return candidate.replace(/\/$/, '');
+      } catch {
+        // not a valid absolute URL — skip
+      }
+    }
+  }
+  return 'http://localhost:3001';
+}
+
+const API_URL = resolveApiUrl();
 
 // Same-origin proxy for the OAuth code exchange.
 // The browser calls this route (port 3000 → 3000, no CORS),
