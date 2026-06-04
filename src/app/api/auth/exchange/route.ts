@@ -8,13 +8,31 @@ const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http:
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const res = await fetch(`${API_URL}/auth/exchange`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/auth/exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { error: `Backend unreachable (API_URL=${API_URL}): ${msg}` },
+      { status: 502 },
+    );
+  }
 
-  const data = await res.json();
+  const text = await res.text();
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return NextResponse.json(
+      { error: `Backend returned non-JSON (${res.status}): ${text.slice(0, 200)}` },
+      { status: 502 },
+    );
+  }
 
   const response = NextResponse.json(data, { status: res.status });
 
