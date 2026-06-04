@@ -23,7 +23,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const data = await res.json();
+  const text = await res.text();
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return NextResponse.json(
+      { error: `Backend returned non-JSON (${res.status}): ${text.slice(0, 200)}` },
+      { status: 502 },
+    );
+  }
 
   const response = NextResponse.json(data, { status: res.status });
 
