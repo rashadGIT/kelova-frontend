@@ -226,20 +226,20 @@ function DirectorDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
-                      <th className="pb-2 text-left font-medium text-muted-foreground">Service Type</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Cases</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Revenue</th>
-                      <th className="pb-2 text-right font-medium text-muted-foreground">Avg</th>
+                    <tr className="border-b border-border/50">
+                      <th className="pb-3 px-1 text-left font-medium text-muted-foreground">Service Type</th>
+                      <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Cases</th>
+                      <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Revenue</th>
+                      <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Avg</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {revenue.revenueByServiceType.map((row) => (
-                      <tr key={row.serviceType}>
-                        <td className="py-2 capitalize">{row.serviceType}</td>
-                        <td className="py-2 text-right">{row.count}</td>
-                        <td className="py-2 text-right">{formatCurrency(row.revenue)}</td>
-                        <td className="py-2 text-right text-muted-foreground">
+                      <tr key={row.serviceType} className="hover:bg-muted/40 transition-colors">
+                        <td className="py-3 px-1 capitalize">{row.serviceType}</td>
+                        <td className="py-3 px-1 text-right">{row.count}</td>
+                        <td className="py-3 px-1 text-right">{formatCurrency(row.revenue)}</td>
+                        <td className="py-3 px-1 text-right text-muted-foreground">
                           {row.count > 0 ? formatCurrency(row.revenue / row.count) : '—'}
                         </td>
                       </tr>
@@ -269,21 +269,21 @@ function DirectorDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    <th className="pb-2 text-left font-medium text-muted-foreground">Staff Member</th>
-                    <th className="pb-2 text-right font-medium text-muted-foreground">Active Cases</th>
-                    <th className="pb-2 text-right font-medium text-muted-foreground">Overdue Tasks</th>
+                  <tr className="border-b border-border/50">
+                    <th className="pb-3 px-1 text-left font-medium text-muted-foreground">Staff Member</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Active Cases</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Overdue Tasks</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {workload.map((member) => (
-                    <tr key={member.id}>
-                      <td className="py-2">
+                    <tr key={member.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="py-3 px-1">
                         <p className="font-medium">{member.name}</p>
                         <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
                       </td>
-                      <td className="py-2 text-right tabular-nums">{member.activeCases}</td>
-                      <td className="py-2 text-right tabular-nums">
+                      <td className="py-3 px-1 text-right tabular-nums">{member.activeCases}</td>
+                      <td className="py-3 px-1 text-right tabular-nums">
                         {member.overdueTaskCount > 0 ? (
                           <span className="text-destructive font-medium">{member.overdueTaskCount}</span>
                         ) : (

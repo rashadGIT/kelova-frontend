@@ -33,7 +33,7 @@ export function RecentCasesTable() {
       ? `${window.location.origin}/intake/${slug}`
       : `/intake/${slug}`;
     return (
-      <div className="rounded-md border p-8 text-center space-y-3">
+      <div className="rounded-xl border border-border p-8 text-center space-y-3">
         <p className="text-muted-foreground">No cases yet.</p>
         <p className="text-sm text-muted-foreground">
           Share your intake form link to get started.
@@ -54,7 +54,7 @@ export function RecentCasesTable() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-xl border border-border">
       <Table>
         <TableHeader>
           <TableRow>

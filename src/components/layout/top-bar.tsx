@@ -45,7 +45,7 @@ export function TopBar() {
     : 'U';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-slate-200 bg-background/95 backdrop-blur-sm shadow-sm px-4 md:px-6">
       <MobileSidebarTrigger />
       <div className="flex-1" />
 
