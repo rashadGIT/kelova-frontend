@@ -58,7 +58,7 @@ export default function BrandingSettingsPage() {
   return (
     <div className="space-y-6 max-w-lg">
       <PageHeader title="Branding" description="Funeral home name and review link." />
-      <div className="divide-y rounded-md border">
+      <div className="divide-y divide-border/60 rounded-xl border border-border">
         {fields.map(({ key, label, hint, placeholder }) => (
           <div key={key} className="px-4 py-4">
             <div className="flex items-center justify-between gap-4 mb-1">

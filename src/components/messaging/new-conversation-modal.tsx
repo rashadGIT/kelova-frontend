@@ -124,7 +124,7 @@ export function NewConversationModal({
             </div>
           )}
 
-          <div className="max-h-64 overflow-y-auto rounded-md border divide-y">
+          <div className="max-h-64 overflow-y-auto rounded-xl border border-border divide-y divide-border/60">
             {isLoading && (
               <p className="p-4 text-sm text-muted-foreground">Loading…</p>
             )}

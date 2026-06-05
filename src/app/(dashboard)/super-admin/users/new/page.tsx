@@ -59,7 +59,7 @@ function NewAdminUserForm() {
 
       <PageHeader title="New User" description="Create a user in any funeral home." />
 
-      <div className="rounded-md border p-5 space-y-4">
+      <div className="rounded-xl border border-border p-5 space-y-4">
         <div className="space-y-1.5">
           <Label>Funeral Home</Label>
           <Select value={tenantId || undefined} onValueChange={setTenantId}>

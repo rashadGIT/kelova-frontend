@@ -29,7 +29,7 @@ export default function CemeteryMapPage() {
               <p className="text-sm text-muted-foreground">No sections configured</p>
             ) : (
               sections.map((s) => (
-                <div key={s.id} className="rounded-md border p-3 text-sm space-y-1">
+                <div key={s.id} className="rounded-xl border border-border p-3 text-sm space-y-1">
                   <div className="font-medium">{s.name}</div>
                   <div className="flex gap-3 text-xs text-muted-foreground">
                     <span className="text-green-600">{s.available} available</span>

@@ -102,7 +102,7 @@ function TemplateCard({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border border-border">
       <div className="flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer select-none">
         <div
           className="flex items-center gap-2 flex-1 min-w-0"
@@ -138,7 +138,7 @@ function TemplateCard({
         )}
       </div>
 
-      {open && <div className="divide-y border-t">
+      {open && <div className="divide-y divide-border/60 border-t border-border/60">
         {localItems.map((item, idx) => (
           <div key={item.id} className="flex items-center gap-2 px-3 py-2 group">
             <span className="text-xs text-muted-foreground w-5 text-center shrink-0">{idx + 1}</span>

@@ -37,7 +37,17 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
 
   return (
     <div className="space-y-1">
-      <div className="flex items-end gap-1" style={{ height: BAR_HEIGHT_PX }}>
+      <div className="relative" style={{ height: BAR_HEIGHT_PX }}>
+        {/* Gridlines */}
+        {[0.25, 0.5, 0.75].map((pct) => (
+          <div
+            key={pct}
+            className="absolute left-0 right-0 border-t border-border/40"
+            style={{ bottom: `${pct * BAR_HEIGHT_PX}px` }}
+          />
+        ))}
+        {/* Bars */}
+        <div className="flex items-end gap-1 h-full">
         {slots.map((d) => {
           const [yyyy, mm] = d.month.split('-');
           const monthLabel = MONTH_LABELS[parseInt(mm, 10) - 1]!;
@@ -45,7 +55,7 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
           return (
             <div key={d.month} className="flex-1 flex flex-col items-end relative">
               <div
-                className={`w-full rounded-t-sm transition-all relative ${d.count > 0 ? 'bg-primary/80' : 'bg-muted'}`}
+                className={`w-full rounded-t-sm transition-all relative ${d.count > 0 ? 'bg-primary hover:opacity-80 transition-opacity duration-150' : 'bg-muted'}`}
                 style={{ height: d.count > 0 ? barHeight : 4 }}
                 title={`${monthLabel} ${yyyy}: ${d.count} cases, ${formatCurrency(d.revenue)}`}
               >
@@ -58,6 +68,7 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
             </div>
           );
         })}
+        </div>
       </div>
       <div className="flex gap-1">
         {slots.map((d, i) => {
@@ -134,6 +145,7 @@ function DirectorDashboard() {
           loading={isLoading}
           href="/cases?filter=active"
           delta={stats?.activeCasesDelta}
+          intent="info"
         />
         <StatCard
           title="Overdue Tasks"
@@ -142,6 +154,7 @@ function DirectorDashboard() {
           description="Past due date"
           loading={isLoading}
           href="/cases?filter=overdue"
+          intent="destructive"
         />
         <StatCard
           title="Cases This Month"
@@ -151,6 +164,7 @@ function DirectorDashboard() {
           loading={isLoading}
           href="/cases?filter=this-month"
           delta={stats?.casesLastMonthDelta}
+          intent="muted"
         />
         <StatCard
           title="Pending Signatures"
@@ -159,6 +173,7 @@ function DirectorDashboard() {
           description="Awaiting family signature"
           loading={isLoading}
           href="/cases?filter=pending-signatures"
+          intent="warning"
         />
       </div>
 
@@ -182,9 +197,10 @@ function DirectorDashboard() {
                   : undefined
               }
               loading={false}
+              intent="success"
             />
             {/* Pending balance card — amber tint via wrapper */}
-            <Card>
+            <Card className="border-l-4 border-l-amber-400">
               <CardContent className="pt-6 pb-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Pending Balance</p>
@@ -302,10 +318,7 @@ function DirectorDashboard() {
       </Card>
 
       {/* Recent cases table */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Recent Cases</h2>
-        <RecentCasesTable />
-      </div>
+      <RecentCasesTable />
     </div>
   );
 }

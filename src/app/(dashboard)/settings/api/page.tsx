@@ -98,7 +98,7 @@ function ApiKeysSection() {
         ) : keys.length === 0 ? (
           <p className="text-sm text-muted-foreground py-2">No API keys yet.</p>
         ) : (
-          <div className="divide-y rounded-md border">
+          <div className="rounded-xl border border-border divide-y divide-border/60">
             {keys.map((k: ApiKeyRecord) => (
               <div key={k.id} className="flex items-center justify-between px-4 py-3">
                 <div className="min-w-0">
@@ -224,7 +224,7 @@ function WebhooksSection() {
       </CardHeader>
       <CardContent className="space-y-4">
         {showForm && (
-          <div className="rounded-md border p-4 space-y-3 bg-muted/30">
+          <div className="rounded-xl border border-border p-4 space-y-3 bg-muted/30">
             <div>
               <Label>Endpoint URL</Label>
               <Input
@@ -273,7 +273,7 @@ function WebhooksSection() {
         ) : webhooks.length === 0 ? (
           <p className="text-sm text-muted-foreground py-2">No webhooks registered yet.</p>
         ) : (
-          <div className="divide-y rounded-md border">
+          <div className="rounded-xl border border-border divide-y divide-border/60">
             {webhooks.map((wh: WebhookSubscription) => (
               <div key={wh.id} className="px-4 py-3">
                 <div className="flex items-start justify-between gap-3">

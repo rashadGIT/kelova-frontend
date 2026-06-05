@@ -14,7 +14,7 @@ export function TaskList({ caseId }: { caseId: string }) {
 
   if (isLoading) return <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>;
   if (error) return (
-    <div className="rounded-md border p-4 text-center space-y-2">
+    <div className="rounded-xl border border-border p-4 text-center space-y-2">
       <p className="text-sm text-muted-foreground">Failed to load tasks.</p>
       <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
     </div>
@@ -26,7 +26,7 @@ export function TaskList({ caseId }: { caseId: string }) {
   return (
     <div>
       <p className="text-sm text-muted-foreground mb-3">{completed} of {tasks.length} tasks completed</p>
-      <div className="rounded-md border divide-y">
+      <div className="rounded-xl border border-border divide-y divide-border/60">
         {tasks.map((task) => (
           <TaskItem key={task.id} task={task} caseId={caseId} />
         ))}

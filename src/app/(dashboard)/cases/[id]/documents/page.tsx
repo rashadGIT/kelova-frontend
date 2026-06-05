@@ -160,7 +160,7 @@ function ScanDialog({
           <p className="text-xs text-muted-foreground">
             Select the fields you want to apply to the case record.
           </p>
-          <div className="rounded-md border divide-y max-h-64 overflow-y-auto">
+          <div className="rounded-xl border border-border divide-y divide-border/60 max-h-64 overflow-y-auto">
             {extractedEntries.map(([key, value]) => (
               <label
                 key={key}
@@ -214,7 +214,7 @@ function DocumentList({ caseId }: { caseId: string }) {
 
   return (
     <>
-      <div className="rounded-md border divide-y">
+      <div className="rounded-xl border border-border divide-y divide-border/60">
         {docs.map((doc) => (
           <div key={doc.id} className="flex items-center justify-between px-4 py-3">
             <div>

@@ -33,7 +33,7 @@ function TaskRow({ task }: { task: ITaskWithCase }) {
   const overdue = task.dueDate && isOverdue(task.dueDate);
 
   return (
-    <div className="flex items-start gap-3 py-3 px-4 border-b last:border-0">
+    <div className="flex items-start gap-3 py-3 px-4">
       <input
         type="checkbox"
         checked={task.completed}
@@ -75,7 +75,7 @@ function Section({ title, tasks, badge, badgeVariant }: {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</h2>
         {badge && <Badge variant={badgeVariant ?? 'secondary'}>{badge}</Badge>}
       </div>
-      <div className="rounded-md border divide-y bg-card">
+      <div className="rounded-xl border border-border divide-y divide-border/60 bg-card">
         {tasks.map((t) => <TaskRow key={t.id} task={t} />)}
       </div>
     </div>
@@ -105,7 +105,7 @@ export default function TasksPage() {
       )}
 
       {error && (
-        <div className="rounded-md border p-4 text-center space-y-2">
+        <div className="rounded-xl border border-border p-4 text-center space-y-2">
           <p className="text-sm text-muted-foreground">Failed to load tasks.</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
         </div>

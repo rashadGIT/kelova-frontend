@@ -153,7 +153,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   if (error) {
     return (
-      <div className="rounded-md border p-6 text-center space-y-3">
+      <div className="rounded-xl border border-border p-6 text-center space-y-3">
         <p className="text-sm text-muted-foreground">Failed to load cases.</p>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           Retry
@@ -164,7 +164,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   if (cases.length === 0) {
     return (
-      <div className="rounded-md border p-6 text-center space-y-2">
+      <div className="rounded-xl border border-border p-6 text-center space-y-2">
         <p className="text-muted-foreground text-sm">No cases yet.</p>
         <p className="text-xs text-muted-foreground">
           Share your intake form link to get started.
@@ -178,7 +178,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
