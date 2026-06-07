@@ -5,6 +5,17 @@ import { TopBar } from '@/components/layout/top-bar';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { MessagingProvider } from '@/components/messaging/messaging-provider';
+// import { TrialingBanner } from '@/components/billing/trialing-banner';
+// import { serverFetch } from '@/lib/api/server';
+
+// async function getSubscriptionStatus(): Promise<string> {
+//   try {
+//     const data = await serverFetch<{ status: string }>('/billing/subscription');
+//     return data.status;
+//   } catch {
+//     return 'active'; // fail open — don't block the layout
+//   }
+// }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -12,9 +23,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
+  // const subscriptionStatus = await getSubscriptionStatus();
+
   return (
     <div className="min-h-screen bg-background">
       <AuthInitializer />
+      {/* <TrialingBanner status={subscriptionStatus} /> */}
       <MessagingProvider>
         {/* Desktop sidebar — fixed left rail */}
         <Sidebar />

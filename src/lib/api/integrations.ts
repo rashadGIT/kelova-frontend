@@ -6,6 +6,11 @@ export interface QBStatus {
   syncEnabled: boolean;
 }
 
+export async function getQBAuthUrl(): Promise<string> {
+  const res = await apiClient.get<{ url: string }>('/integrations/quickbooks/auth-url');
+  return res.data.url;
+}
+
 export async function getQBStatus(): Promise<QBStatus> {
   const res = await apiClient.get<QBStatus>('/integrations/quickbooks/status');
   return res.data;

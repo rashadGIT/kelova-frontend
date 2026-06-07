@@ -9,9 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { getQBStatus, disconnectQB } from '@/lib/api/integrations';
+import { getQBStatus, disconnectQB, getQBAuthUrl } from '@/lib/api/integrations';
 import { formatDate } from '@/lib/utils/format-date';
-import { apiClient } from '@/lib/api/client';
 
 function QuickBooksCard() {
   const queryClient = useQueryClient();
@@ -37,10 +36,13 @@ function QuickBooksCard() {
     onError: () => toast.error('Failed to disconnect QuickBooks.'),
   });
 
-  const handleConnect = () => {
-    // Redirect to backend OAuth endpoint — backend handles the Intuit redirect
-    const base = apiClient.defaults.baseURL ?? '';
-    window.location.href = `${base}/integrations/quickbooks/connect`;
+  const handleConnect = async () => {
+    try {
+      const url = await getQBAuthUrl();
+      window.location.href = url;
+    } catch {
+      toast.error('Failed to start QuickBooks connection. Please try again.');
+    }
   };
 
   return (

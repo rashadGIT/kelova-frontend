@@ -20,6 +20,7 @@ const BASE_TABS = [
   { label: 'Integrations', href: '/settings/integrations', directorOnly: false },
   { label: 'API & Webhooks', href: '/settings/api', directorOnly: false },
   { label: 'Multi-Location', href: '/settings/multi-location', directorOnly: true },
+  { label: 'Billing', href: '/settings/billing', directorOnly: true },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
