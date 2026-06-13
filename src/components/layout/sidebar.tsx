@@ -17,6 +17,8 @@ import {
   BarChart2,
   Layers,
   MessageSquare,
+  MessageCircle,
+  Inbox,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -39,11 +41,13 @@ const regularNavItems = [
   { label: 'Analytics', href: '/analytics', icon: BarChart2, exact: false, directorOnly: true },
   { label: 'Multi-Location', href: '/multi-location', icon: Layers, exact: false, directorOnly: true },
   { label: 'Settings', href: '/settings', icon: Settings, exact: false, adminOnly: true },
+  { label: 'Feedback', href: '/feedback', icon: MessageCircle, exact: true },
 ];
 
 const adminNavItems = [
   { label: 'Funeral Homes', href: '/super-admin/tenants', icon: ShieldCheck, exact: false },
   { label: 'All Users', href: '/super-admin/users', icon: Users, exact: false },
+  { label: 'Feedback Inbox', href: '/super-admin/feedback', icon: Inbox, exact: false },
 ];
 
 function NavLink({

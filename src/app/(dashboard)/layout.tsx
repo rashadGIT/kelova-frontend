@@ -5,6 +5,7 @@ import { TopBar } from '@/components/layout/top-bar';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { MessagingProvider } from '@/components/messaging/messaging-provider';
+import { FeedbackWidget } from '@/components/feedback/feedback-widget';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-8">{children}</main>
         </div>
         <MobileNav />
+        <FeedbackWidget />
       </MessagingProvider>
     </div>
   );
