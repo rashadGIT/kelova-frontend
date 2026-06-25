@@ -172,7 +172,7 @@ export function MobileSidebarTrigger() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden touch-target">
+        <Button variant="ghost" size="icon" className="touch-target">
           <Menu className="h-5 w-5" />
           <span className="sr-only">Open navigation menu</span>
         </Button>

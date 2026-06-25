@@ -10,8 +10,14 @@ import {
   confirmPublished,
   updateSubmissionStatus,
 } from '@/lib/api/obituary-publishing';
+import {
+  requestContributions,
+  listContributions,
+  resendContribution,
+  type ContributionRecord,
+} from '@/lib/api/obituary-contributions';
 import type { IObituarySubmission } from '@/types';
-import { ExternalLink, Send } from 'lucide-react';
+import { ExternalLink, Send, CheckCircle2, Clock, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
@@ -481,7 +487,116 @@ function PublishingTab({ caseId }: { caseId: string }) {
   );
 }
 
-const OBT_TABS = ['Obituary', 'Publishing'] as const;
+function ContributionsTab({ caseId }: { caseId: string }) {
+  const queryClient = useQueryClient();
+
+  const { data: contributions = [], isLoading } = useQuery<ContributionRecord[]>({
+    queryKey: ['obituary-contributions', caseId],
+    queryFn: () => listContributions(caseId),
+  });
+
+  const requestMutation = useMutation({
+    mutationFn: () => requestContributions(caseId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['obituary-contributions', caseId] });
+      toast.success(`Contribution requests sent to ${data.sent} family member${data.sent !== 1 ? 's' : ''}.`);
+    },
+    onError: () => toast.error('Failed to send requests.'),
+  });
+
+  const resendMutation = useMutation({
+    mutationFn: (contactId: string) => resendContribution(caseId, contactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['obituary-contributions', caseId] });
+      toast.success('Contribution request resent.');
+    },
+    onError: () => toast.error('Failed to resend.'),
+  });
+
+  const submitted = contributions.filter((c) => c.submittedAt);
+  const pending = contributions.filter((c) => !c.submittedAt);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {submitted.length} of {contributions.length} submitted
+        </p>
+        <button
+          onClick={() => requestMutation.mutate()}
+          disabled={requestMutation.isPending}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+        >
+          <Mail className="h-3.5 w-3.5" />
+          {requestMutation.isPending ? 'Sending…' : 'Request Contributions'}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : contributions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              No requests sent yet. Click &quot;Request Contributions&quot; to email family members.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {[...submitted, ...pending].map((c) => (
+            <Card key={c.id}>
+              <CardContent className="px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 shrink-0">
+                    {c.submittedAt ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{c.familyContact.name}</p>
+                        <span className="text-xs text-muted-foreground">
+                          {c.familyContact.relationship}
+                        </span>
+                      </div>
+                      {c.familyContact.email && (
+                        <button
+                          onClick={() => resendMutation.mutate(c.familyContactId)}
+                          disabled={resendMutation.isPending}
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+                        >
+                          <Mail className="h-3 w-3" />
+                          {resendMutation.isPending ? 'Sending…' : 'Resend'}
+                        </button>
+                      )}
+                    </div>
+                    {c.familyContact.email && (
+                      <p className="text-xs text-muted-foreground">{c.familyContact.email}</p>
+                    )}
+                    {c.contributionText && (
+                      <p className="mt-2 text-sm text-foreground leading-relaxed whitespace-pre-wrap border-l-2 border-muted pl-3">
+                        {c.contributionText}
+                      </p>
+                    )}
+                    {!c.submittedAt && (
+                      <p className="mt-1 text-xs text-muted-foreground italic">Awaiting response</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const OBT_TABS = ['Obituary', 'Contributions', 'Publishing'] as const;
 type ObtTab = (typeof OBT_TABS)[number];
 
 export default function CaseObituaryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -507,11 +622,9 @@ export default function CaseObituaryPage({ params }: { params: Promise<{ id: str
           </button>
         ))}
       </div>
-      {activeTab === 'Obituary' ? (
-        <ObituaryEditor caseId={id} />
-      ) : (
-        <PublishingTab caseId={id} />
-      )}
+      {activeTab === 'Obituary' && <ObituaryEditor caseId={id} />}
+      {activeTab === 'Contributions' && <ContributionsTab caseId={id} />}
+      {activeTab === 'Publishing' && <PublishingTab caseId={id} />}
     </div>
   );
 }

@@ -25,6 +25,11 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
+  // Dev bypass: tell the backend which user to impersonate
+  const devUser = process.env.NEXT_PUBLIC_DEV_USER;
+  if (process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' && devUser) {
+    config.headers['x-dev-user'] = devUser;
+  }
   // Super-admin tenant view: inject x-tenant-id so the backend scopes queries to the selected tenant
   const { activeTenantId } = useAdminStore.getState();
   if (activeTenantId) {
