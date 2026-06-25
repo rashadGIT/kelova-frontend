@@ -1,6 +1,7 @@
 import type { ServiceType } from '../enums/service-type.enum';
 import type { CaseStatus } from '../enums/case-status.enum';
 import type { CaseStage } from '../enums/case-stage.enum';
+import type { UrnStatus } from '../enums/urn-status.enum';
 
 export interface ICase {
   id: string;
@@ -18,4 +19,7 @@ export interface ICase {
   createdAt: string;
   updatedAt: string;
   overdueTaskCount?: number;
+  urnStatus?: UrnStatus | null;
+  insuranceStatus?: string | null;
+  insuranceSubmittedAt?: string | null;
 }

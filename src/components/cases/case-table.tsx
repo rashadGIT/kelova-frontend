@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,8 +19,24 @@ import { cn } from '@/lib/utils/cn';
 import { CaseStatusBadge } from './case-status-badge';
 import { getCases, type CaseFilters } from '@/lib/api/cases';
 import { formatRelative } from '@/lib/utils/format-date';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import type { ICase } from '@/types';
+import { UrnStatus } from '@/types';
+
+const URN_STATUS_LABELS: Record<UrnStatus, { label: string; className: string }> = {
+  [UrnStatus.Pending]:   { label: 'Pending',   className: 'bg-muted text-muted-foreground' },
+  [UrnStatus.Ordered]:   { label: 'Ordered',   className: 'bg-blue-100 text-blue-800' },
+  [UrnStatus.Received]:  { label: 'Received',  className: 'bg-amber-100 text-amber-800' },
+  [UrnStatus.Delivered]: { label: 'Delivered', className: 'bg-green-100 text-green-800' },
+};
+
+const INSURANCE_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  pending:   { label: 'Pending',   className: 'bg-muted text-muted-foreground' },
+  submitted: { label: 'Submitted', className: 'bg-blue-100 text-blue-800' },
+  approved:  { label: 'Approved',  className: 'bg-green-100 text-green-800' },
+  funded:    { label: 'Funded',    className: 'bg-emerald-100 text-emerald-800' },
+};
 
 const columnHelper = createColumnHelper<ICase>();
 
@@ -89,10 +105,47 @@ const overdueColumn = columnHelper.accessor('overdueTaskCount', {
   },
 });
 
+const urnStatusColumn = columnHelper.accessor('urnStatus', {
+  id: 'urnStatus',
+  header: () => <span className="font-medium">Urn Status</span>,
+  cell: (info) => {
+    const status = info.getValue();
+    if (!status) return <span className="text-muted-foreground text-xs">—</span>;
+    const config = URN_STATUS_LABELS[status as UrnStatus] ?? { label: status, className: 'bg-muted text-muted-foreground' };
+    return (
+      <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', config.className)}>
+        {config.label}
+      </span>
+    );
+  },
+});
+
+const insuranceStatusColumn = columnHelper.accessor('insuranceStatus', {
+  id: 'insuranceStatus',
+  header: () => <span className="font-medium">Insurance</span>,
+  cell: (info) => {
+    const row = info.row.original;
+    const status = info.getValue();
+    if (!status) return <span className="text-muted-foreground text-xs">—</span>;
+    const config = INSURANCE_STATUS_LABELS[status] ?? { label: status, className: 'bg-muted text-muted-foreground' };
+    const isStale =
+      status === 'submitted' &&
+      row.insuranceSubmittedAt &&
+      Date.now() - new Date(row.insuranceSubmittedAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+    return (
+      <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', isStale ? 'bg-amber-100 text-amber-900 ring-1 ring-amber-300' : config.className)}>
+        {isStale ? '⚠ Stale' : config.label}
+      </span>
+    );
+  },
+});
+
 function buildFilters(filter?: string): CaseFilters {
   if (filter === 'active' || filter === 'overdue' || filter === 'this-month' || filter === 'pending-signatures') {
     return { dashboardFilter: filter };
   }
+  if (filter === 'cremation') return { serviceType: 'cremation' as CaseFilters['serviceType'] };
+  if (filter === 'insurance') return { hasInsurance: true };
   return {};
 }
 
@@ -101,26 +154,43 @@ export function CaseTable({ filter }: { filter?: string }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(25);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  // Debounce search — wait 300ms after the user stops typing
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPageIndex(0);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const sortCol = sorting[0];
   const queryFilters: CaseFilters = {
     ...buildFilters(filter),
+    ...(search ? { search } : {}),
     page: pageIndex + 1,
     limit: pageSize,
     ...(sortCol ? { sortBy: sortCol.id, sortOrder: sortCol.desc ? 'desc' : 'asc' } : {}),
   };
 
   const { data: page, isLoading, error, refetch } = useQuery({
-    queryKey: ['cases', filter, pageIndex, pageSize, sortCol?.id, sortCol?.desc],
+    queryKey: ['cases', filter, search, pageIndex, pageSize, sortCol?.id, sortCol?.desc],
     queryFn: () => getCases(queryFilters),
   });
 
   const cases = page?.data ?? [];
   const total = page?.total ?? 0;
 
-  const columns = filter === 'overdue'
-    ? [...baseColumns, overdueColumn]
-    : baseColumns;
+  const columns =
+    filter === 'overdue'
+      ? [...baseColumns, overdueColumn]
+      : filter === 'cremation'
+        ? [...baseColumns, urnStatusColumn]
+        : filter === 'insurance'
+          ? [...baseColumns, insuranceStatusColumn]
+          : baseColumns;
 
   const table = useReactTable({
     data: cases,
@@ -141,9 +211,31 @@ export function CaseTable({ filter }: { filter?: string }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const searchBar = (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      <Input
+        placeholder="Search by name, case number..."
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        className="pl-9 pr-9"
+      />
+      {searchInput && (
+        <button
+          onClick={() => setSearchInput('')}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label="Clear search"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
+        {searchBar}
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
@@ -153,22 +245,33 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-border p-6 text-center space-y-3">
-        <p className="text-sm text-muted-foreground">Failed to load cases.</p>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          Retry
-        </Button>
+      <div className="space-y-3">
+        {searchBar}
+        <div className="rounded-xl border border-border p-6 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">Failed to load cases.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+        </div>
       </div>
     );
   }
 
   if (cases.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-6 text-center space-y-2">
-        <p className="text-muted-foreground text-sm">No cases yet.</p>
-        <p className="text-xs text-muted-foreground">
-          Share your intake form link to get started.
-        </p>
+      <div className="space-y-3">
+        {searchBar}
+        <div className="rounded-xl border border-border p-6 text-center space-y-2">
+          {search ? (
+            <>
+              <p className="text-muted-foreground text-sm">No cases match &ldquo;{search}&rdquo;.</p>
+              <Button variant="outline" size="sm" onClick={() => setSearchInput('')}>Clear search</Button>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground text-sm">No cases yet.</p>
+              <p className="text-xs text-muted-foreground">Share your intake form link to get started.</p>
+            </>
+          )}
+        </div>
       </div>
     );
   }
@@ -178,6 +281,8 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   return (
     <div className="space-y-3">
+      {searchBar}
+
       <div className="overflow-x-auto rounded-xl border border-border">
         <Table>
           <TableHeader>
@@ -245,20 +350,10 @@ export function CaseTable({ filter }: { filter?: string }) {
           </select>
           {total > pageSize && (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
+              <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
                 Previous
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
+              <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
                 Next
               </Button>
             </>

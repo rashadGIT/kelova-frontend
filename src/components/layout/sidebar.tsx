@@ -17,6 +17,7 @@ import {
   BarChart2,
   Layers,
   MessageSquare,
+  FileBarChart2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -36,6 +37,7 @@ const regularNavItems = [
   { label: 'Vendors', href: '/vendors', icon: Building2, exact: false },
   { label: 'Pre-Need', href: '/preneed', icon: BookOpen, exact: false, directorOnly: true },
   { label: 'Price List', href: '/price-list', icon: DollarSign, exact: false, directorOnly: true },
+  { label: 'Reports', href: '/reports', icon: FileBarChart2, exact: false, directorOnly: true },
   { label: 'Analytics', href: '/analytics', icon: BarChart2, exact: false, directorOnly: true },
   { label: 'Multi-Location', href: '/multi-location', icon: Layers, exact: false, directorOnly: true },
   { label: 'Settings', href: '/settings', icon: Settings, exact: false, adminOnly: true },

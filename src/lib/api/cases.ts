@@ -10,11 +10,14 @@ export interface CreateCaseDto {
   serviceType: ServiceType;
   assignedTo?: string;
   notes?: string;
+  directCremation?: boolean;
 }
 
 export interface CaseFilters {
+  search?: string;
   status?: CaseStatus;
   serviceType?: ServiceType;
+  hasInsurance?: boolean;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -46,6 +49,7 @@ export async function createCase(dto: CreateCaseDto): Promise<ICase> {
     ...(dto.dateOfBirth && { deceasedDob: dto.dateOfBirth }),
     ...(dto.dateOfDeath && { deceasedDod: dto.dateOfDeath }),
     ...(dto.assignedTo && { assignedToId: dto.assignedTo }),
+    ...(dto.directCremation && { directCremation: true }),
   });
   return res.data;
 }

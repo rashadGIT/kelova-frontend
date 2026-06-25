@@ -7,6 +7,36 @@ export interface PaymentSummary {
   outstanding: number;
 }
 
+export interface ArAgingCase {
+  caseId: string;
+  deceasedName: string;
+  totalAmount: number;
+  amountPaid: number;
+  balance: number;
+  oldestUnpaidDays: number;
+}
+
+export interface ArAgingBucket {
+  label: '0-30' | '31-60' | '61-90' | '90+';
+  totalOutstanding: number;
+  caseCount: number;
+  cases: ArAgingCase[];
+}
+
+export interface ArAgingReport {
+  buckets: ArAgingBucket[];
+  totalOutstanding: number;
+}
+
+export async function getArAging(): Promise<ArAgingReport> {
+  const res = await apiClient.get<ArAgingReport>('/accounting/ar-aging');
+  return res.data;
+}
+
+export async function reconcilePayment(caseId: string): Promise<void> {
+  await apiClient.patch(`/cases/${caseId}/payments/reconcile`);
+}
+
 export async function getCasePayments(caseId: string): Promise<IPayment | null> {
   const res = await apiClient.get<IPayment>(`/cases/${caseId}/payment`).catch((e) => {
     if (e?.response?.status === 404) return null;

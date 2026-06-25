@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ServiceType } from '@/types';
 import { createCase } from '@/lib/api/cases';
@@ -20,6 +21,7 @@ const createCaseSchema = z.object({
   dateOfBirth: z.string().optional(),
   dateOfDeath: z.string().optional(),
   serviceType: z.nativeEnum(ServiceType),
+  directCremation: z.boolean().optional(),
   notes: z.string().optional(),
 });
 
@@ -31,8 +33,10 @@ export function CreateCaseForm() {
 
   const form = useForm<CreateCaseFormValues>({
     resolver: standardSchemaResolver(createCaseSchema),
-    defaultValues: { serviceType: ServiceType.burial },
+    defaultValues: { serviceType: ServiceType.burial, directCremation: false },
   });
+
+  const directCremation = form.watch('directCremation');
 
   const mutation = useMutation({
     mutationFn: createCase,
@@ -48,7 +52,36 @@ export function CreateCaseForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4 max-w-lg">
+      <form
+        onSubmit={form.handleSubmit((v) =>
+          mutation.mutate({
+            ...v,
+            serviceType: v.directCremation ? ServiceType.cremation : v.serviceType,
+          })
+        )}
+        className="space-y-4 max-w-lg"
+      >
+        {/* Direct Cremation fast-track toggle */}
+        <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-amber-900">Direct Cremation</p>
+            <p className="text-xs text-amber-700">No viewing or service — sets service type to cremation automatically</p>
+          </div>
+          <FormField
+            control={form.control}
+            name="directCremation"
+            render={({ field }) => (
+              <Switch
+                checked={field.value ?? false}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  if (checked) form.setValue('serviceType', ServiceType.cremation);
+                }}
+              />
+            )}
+          />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="deceasedFirstName" render={({ field }) => (
             <FormItem>
@@ -66,21 +99,23 @@ export function CreateCaseForm() {
           )} />
         </div>
 
-        <FormField control={form.control} name="serviceType" render={({ field }) => (
-          <FormItem>
-            <FormLabel className="font-medium">Service Type</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl><SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger></FormControl>
-              <SelectContent>
-                <SelectItem value={ServiceType.burial}>Burial</SelectItem>
-                <SelectItem value={ServiceType.cremation}>Cremation</SelectItem>
-                <SelectItem value={ServiceType.graveside}>Graveside</SelectItem>
-                <SelectItem value={ServiceType.memorial}>Memorial</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )} />
+        {!directCremation && (
+          <FormField control={form.control} name="serviceType" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-medium">Service Type</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  <SelectItem value={ServiceType.burial}>Burial</SelectItem>
+                  <SelectItem value={ServiceType.cremation}>Cremation</SelectItem>
+                  <SelectItem value={ServiceType.graveside}>Graveside</SelectItem>
+                  <SelectItem value={ServiceType.memorial}>Memorial</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+        )}
 
         <FormField control={form.control} name="notes" render={({ field }) => (
           <FormItem>

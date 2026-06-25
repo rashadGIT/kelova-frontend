@@ -41,6 +41,7 @@ import {
   recordPayment,
   createCheckoutSession,
   createRefund,
+  reconcilePayment,
 } from '@/lib/api/payments';
 import { generateReceipt } from '@/lib/api/documents';
 import { syncQBInvoice, syncQBPayment } from '@/lib/api/integrations';
@@ -168,6 +169,15 @@ function PaymentList({ caseId }: { caseId: string }) {
     onError: () => toast.error('Failed to generate receipt.'),
   });
 
+  const reconcileMutation = useMutation({
+    mutationFn: () => reconcilePayment(caseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments', caseId] });
+      toast.success('Payment marked as reconciled.');
+    },
+    onError: () => toast.error('Failed to reconcile payment.'),
+  });
+
   if (isLoading) return <Skeleton className="h-48 w-full" />;
 
   const payment = data as IPayment | null;
@@ -176,6 +186,7 @@ function PaymentList({ caseId }: { caseId: string }) {
   const outstanding = totalAmount - amountPaid;
   const isPaidInFull = outstanding <= 0 && totalAmount > 0;
   const hasStripePayment = !!payment?.stripePaymentIntentId;
+  const isReconciled = !!payment?.reconciledAt;
 
   return (
     <div className="space-y-4">
@@ -220,6 +231,18 @@ function PaymentList({ caseId }: { caseId: string }) {
           >
             {qbSyncMutation.isPending ? 'Syncing...' : 'Sync to QuickBooks'}
           </Button>
+
+          {payment && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => reconcileMutation.mutate()}
+              disabled={reconcileMutation.isPending || isReconciled}
+              className={isReconciled ? 'text-green-700 border-green-300 bg-green-50' : ''}
+            >
+              {isReconciled ? '✓ Reconciled' : reconcileMutation.isPending ? 'Reconciling...' : 'Mark Reconciled'}
+            </Button>
+          )}
 
           <Button
             size="sm"

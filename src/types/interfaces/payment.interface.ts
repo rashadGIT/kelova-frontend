@@ -8,6 +8,7 @@ export interface IPayment {
   notes: string | null;
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
+  reconciledAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

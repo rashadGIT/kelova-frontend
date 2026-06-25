@@ -9,6 +9,22 @@ export interface InsuranceAssignment {
   claimantName: string;
   relationship: string;
   status: 'pending' | 'submitted' | 'approved' | 'funded';
+  submittedAt?: string | null;
+}
+
+export interface InsuranceFollowUp {
+  id: string;
+  method: 'call' | 'email' | 'portal';
+  notes?: string | null;
+  nextFollowUpDate?: string | null;
+  createdAt: string;
+  createdBy?: { id: string; name: string } | null;
+}
+
+export interface CreateFollowUpDto {
+  method: 'call' | 'email' | 'portal';
+  notes?: string;
+  nextFollowUpDate?: string;
 }
 
 export interface StationeryTemplate {
@@ -44,6 +60,16 @@ export interface GraveCareOrder {
 
 export async function getInsurance(caseId: string): Promise<InsuranceAssignment | null> {
   const res = await apiClient.get<InsuranceAssignment>(`/cases/${caseId}/insurance`);
+  return res.data;
+}
+
+export async function getInsuranceFollowUps(assignmentId: string): Promise<InsuranceFollowUp[]> {
+  const res = await apiClient.get<InsuranceFollowUp[]>(`/insurance-assignments/${assignmentId}/follow-ups`);
+  return res.data;
+}
+
+export async function addInsuranceFollowUp(assignmentId: string, dto: CreateFollowUpDto): Promise<InsuranceFollowUp> {
+  const res = await apiClient.post<InsuranceFollowUp>(`/insurance-assignments/${assignmentId}/follow-ups`, dto);
   return res.data;
 }
 

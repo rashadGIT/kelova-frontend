@@ -198,10 +198,10 @@ describe('Acceptance: Dashboard page', () => {
     renderWithQuery(<DashboardPage />);
 
     await waitFor(() => screen.getByText('Jane Director'));
-    // Jane Director has overdueTaskCount=1 — find the span with destructive class
-    const destructiveSpans = document.querySelectorAll('.text-destructive');
-    expect(destructiveSpans.length).toBeGreaterThan(0);
-    expect(destructiveSpans[0].textContent).toBe('1');
+    // Jane Director has overdueTaskCount=1 — the count uses text-destructive + font-medium
+    const overdueSpan = document.querySelector('.text-destructive.font-medium');
+    expect(overdueSpan).toBeInTheDocument();
+    expect(overdueSpan?.textContent).toBe('1');
   });
 
   it('shows "—" for pending balance when revenue query fails', async () => {
