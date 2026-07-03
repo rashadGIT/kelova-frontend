@@ -71,7 +71,7 @@ describe('Sidebar', () => {
     renderWithQuery(<Sidebar />);
 
     const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
-    expect(dashboardLink.className).toMatch(/font-semibold/);
+    expect(dashboardLink.className).toMatch(/font-medium/);
   });
 
   it('marks Cases link as active when pathname starts with "/cases"', () => {
@@ -79,7 +79,7 @@ describe('Sidebar', () => {
     renderWithQuery(<Sidebar />);
 
     const casesLink = screen.getByRole('link', { name: /^cases$/i });
-    expect(casesLink.className).toMatch(/font-semibold/);
+    expect(casesLink.className).toMatch(/font-medium/);
   });
 
   it('does not mark Dashboard as active when pathname is "/cases"', () => {

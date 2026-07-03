@@ -97,7 +97,7 @@ function AuthCallbackInner() {
     }
 
     exchangeCode();
-  }, [searchParams, setUser]);
+  }, [searchParams, setUser, exitTenantView]);
 
   if (error) {
     return (
