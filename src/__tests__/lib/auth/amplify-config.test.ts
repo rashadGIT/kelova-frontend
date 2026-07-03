@@ -100,12 +100,10 @@ describe('configureAmplify', () => {
       redirectSignIn: [
         'http://localhost:3000/auth/callback',
         'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
-        'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
         'https://main.dlrm9a0dpsu77.amplifyapp.com/auth/callback',
       ],
       redirectSignOut: [
         'http://localhost:3000/login',
-        'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
         'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
         'https://main.dlrm9a0dpsu77.amplifyapp.com/login',
       ],
@@ -135,12 +133,10 @@ describe('configureAmplify', () => {
               redirectSignIn: [
                 'http://localhost:3000/auth/callback',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
-                'https://master.d2hwhswdtj7kj2.amplifyapp.com/auth/callback',
                 'https://main.dlrm9a0dpsu77.amplifyapp.com/auth/callback',
               ],
               redirectSignOut: [
                 'http://localhost:3000/login',
-                'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
                 'https://master.d2hwhswdtj7kj2.amplifyapp.com/login',
                 'https://main.dlrm9a0dpsu77.amplifyapp.com/login',
               ],
