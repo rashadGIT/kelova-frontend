@@ -44,7 +44,7 @@ function CreateTenantDialog({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><Plus className="h-4 w-4 mr-2" />New Funeral Home</Button>
+        <Button size="sm" variant="outline" className="gap-1.5 font-medium"><Plus className="h-4 w-4" />New Funeral Home</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>New Funeral Home</DialogTitle></DialogHeader>
@@ -93,6 +93,24 @@ function CreateTenantDialog({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+function TenantAvatar({ name }: { name: string }) {
+  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  const palettes = [
+    'bg-blue-100 text-blue-700',
+    'bg-violet-100 text-violet-700',
+    'bg-emerald-100 text-emerald-700',
+    'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700',
+    'bg-cyan-100 text-cyan-700',
+  ];
+  const color = palettes[name.charCodeAt(0) % palettes.length];
+  return (
+    <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0 ${color}`}>
+      {initials}
+    </div>
+  );
+}
+
 function PlanBadge({ plan }: { plan: string }) {
   const colors: Record<string, string> = {
     pilot: 'bg-slate-100 text-slate-700',
@@ -111,20 +129,23 @@ function TenantRow({ tenant }: { tenant: AdminTenant }) {
   return (
     <Link
       href={`/super-admin/tenants/${tenant.id}`}
-      className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
+      className="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-card border border-border hover:border-slate-300 hover:shadow-md hover:bg-accent/40 transition-all duration-150 group cursor-pointer"
     >
+      <TenantAvatar name={tenant.name} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="font-medium text-sm truncate">{tenant.name}</p>
           {!tenant.active && <Badge variant="destructive" className="text-xs">Inactive</Badge>}
         </div>
-        <div className="flex items-center gap-3 mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs text-muted-foreground font-mono">{tenant.slug}</span>
+          <span className="text-muted-foreground/40 text-xs">·</span>
           <PlanBadge plan={tenant.planTier} />
+          <span className="text-muted-foreground/40 text-xs">·</span>
           <span className="text-xs text-muted-foreground">{tenant._count.users} users · {tenant._count.cases} cases</span>
         </div>
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+      <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
     </Link>
   );
 }
@@ -150,7 +171,7 @@ export default function AdminTenantsPage() {
       ) : tenants.length === 0 ? (
         <p className="text-sm text-muted-foreground">No funeral homes yet.</p>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="space-y-2">
           {tenants.map((t) => <TenantRow key={t.id} tenant={t} />)}
         </div>
       )}

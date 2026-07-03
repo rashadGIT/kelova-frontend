@@ -252,11 +252,11 @@ function MemorialManager({ caseId }: { caseId: string }) {
                         key={i}
                         src={url}
                         alt={`Photo ${i + 1}`}
-                        className="h-16 w-16 object-cover rounded-md border"
+                        className="h-16 w-16 object-cover rounded-md border border-border"
                       />
                     ))}
                     {memorial.photoUrls.length > 4 && (
-                      <div className="h-16 w-16 rounded-md border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                      <div className="h-16 w-16 rounded-md border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
                         +{memorial.photoUrls.length - 4}
                       </div>
                     )}

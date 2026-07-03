@@ -451,7 +451,7 @@ export default function PreplanningPage({
         {step === 3 && step1Data && step2Data && (
           <div className="space-y-4">
             <h2 className="text-lg font-medium">Review Your Information</h2>
-            <div className="rounded-md border divide-y text-sm">
+            <div className="rounded-xl border border-border divide-y divide-border/60 text-sm">
               <div className="px-4 py-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
                   Personal

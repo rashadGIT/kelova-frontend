@@ -105,7 +105,7 @@ export default function MultiLocationPage() {
               {data.locations.map((loc) => (
                 <div
                   key={loc.locationId}
-                  className="rounded-lg border bg-card px-6 pt-5 pb-5"
+                  className="rounded-xl border border-border bg-card px-6 pt-5 pb-5"
                 >
                   <p className="text-sm font-semibold">{loc.displayName}</p>
                   <p className="text-xs text-muted-foreground mt-0.5 mb-4 truncate">

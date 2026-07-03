@@ -154,11 +154,11 @@ export default function StaffPage() {
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : staff.length === 0 ? (
-        <div className="rounded-md border p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
           No team members yet. Invite your first staff member above.
         </div>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="rounded-xl border border-border divide-y divide-border/60">
           {staff.map((member) => (
             <div key={member.id} className="flex items-center justify-between px-4 py-3 gap-3">
               <div className="min-w-0 flex-1">

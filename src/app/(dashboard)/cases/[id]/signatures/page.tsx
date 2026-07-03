@@ -77,7 +77,7 @@ function SignatureList({ caseId }: { caseId: string }) {
       {signatures.length === 0 ? (
         <p className="text-sm text-muted-foreground">No signature requests yet.</p>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="rounded-xl border border-border divide-y divide-border/60">
           {signatures.map((sig) => (
             <div key={sig.id} className="flex items-center justify-between px-4 py-3">
               <div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kelova.com';
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? '';
 
 const PUBLIC_PATHS = ['/login', '/auth', '/intake', '/forgot-password', '/reset-password'];
 
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Subdomain tenant resolution
-  // Production: sunrise.kelova.com → slug = 'sunrise'
+  // Production: sunrise.example.com → slug = 'sunrise' (requires NEXT_PUBLIC_APP_DOMAIN)
   // Local dev:  localhost:3000?tenant=sunrise → slug = 'sunrise'
   const subdomain = host.replace(`.${APP_DOMAIN}`, '').replace(/:\d+$/, '');
   const isSubdomain =

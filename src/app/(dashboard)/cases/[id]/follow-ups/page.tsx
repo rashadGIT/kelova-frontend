@@ -28,7 +28,7 @@ function FollowUpList({ caseId }: { caseId: string }) {
   };
 
   return (
-    <div className="rounded-md border divide-y">
+    <div className="rounded-xl border border-border divide-y divide-border/60">
       {followUps.map((f: Record<string, unknown>) => {
         const scheduledDate = (f.scheduledAt ?? f.scheduledFor ?? null) as string | null;
         return (

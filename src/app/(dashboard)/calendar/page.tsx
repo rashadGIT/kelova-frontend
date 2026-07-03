@@ -172,7 +172,7 @@ function StreamingPanel({ event }: { event: ICalendarEvent }) {
   });
 
   return (
-    <div className="mt-3 rounded-md border bg-muted/30 p-3 space-y-3">
+    <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Video className="h-4 w-4 text-muted-foreground" />
@@ -268,9 +268,9 @@ function MonthGrid({ currentMonth, selectedDate, events, onDayClick, onMonthChan
   });
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
       {/* Month navigation */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
         <Button
           variant="ghost" size="icon" className="h-8 w-8"
           onClick={() => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
@@ -289,7 +289,7 @@ function MonthGrid({ currentMonth, selectedDate, events, onDayClick, onMonthChan
       </div>
 
       {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 border-b">
+      <div className="grid grid-cols-7 border-b border-border">
         {DAY_HEADERS_LONG.map((d, i) => (
           <div key={i} className="py-2 text-center text-xs font-medium text-muted-foreground">
             <span className="hidden sm:inline">{d}</span>
@@ -299,7 +299,7 @@ function MonthGrid({ currentMonth, selectedDate, events, onDayClick, onMonthChan
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 divide-x divide-y border-t">
+      <div className="grid grid-cols-7 divide-x divide-y divide-border/60 border-t border-border/60">
         {days.map((day) => {
           const key      = format(day, 'yyyy-MM-dd');
           const dayEvts  = eventsByDay.get(key) ?? [];
