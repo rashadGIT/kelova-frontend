@@ -42,7 +42,7 @@ describe('StatCard', () => {
     // Skeleton renders with data-slot="skeleton" or at minimum hides the value
     expect(screen.queryByText('12')).not.toBeInTheDocument();
     // The skeleton div should be present
-    expect(container.querySelector('.h-8')).toBeInTheDocument();
+    expect(container.querySelector('.h-10')).toBeInTheDocument();
   });
 
   it('wraps the card in a link when href is provided', () => {

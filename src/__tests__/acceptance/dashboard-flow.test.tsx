@@ -199,7 +199,10 @@ describe('Acceptance: Dashboard page', () => {
 
     await waitFor(() => screen.getByText('Jane Director'));
     // Jane Director has overdueTaskCount=1 — find the span with destructive class
-    const destructiveSpans = document.querySelectorAll('.text-destructive');
+    // within her table row (other .text-destructive elements exist elsewhere on
+    // the page, e.g. the destructive-intent StatCard icon bubble).
+    const row = screen.getByText('Jane Director').closest('tr');
+    const destructiveSpans = row!.querySelectorAll('.text-destructive');
     expect(destructiveSpans.length).toBeGreaterThan(0);
     expect(destructiveSpans[0].textContent).toBe('1');
   });
