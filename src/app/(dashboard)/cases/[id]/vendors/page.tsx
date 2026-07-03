@@ -81,7 +81,7 @@ function VendorList({ caseId }: { caseId: string }) {
       {assignments.length === 0 ? (
         <p className="text-sm text-muted-foreground">No vendors assigned yet.</p>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="rounded-xl border border-border divide-y divide-border/60">
           {assignments.map((a: IVendorAssignment) => (
             <div key={a.id} className="px-4 py-3">
               <p className="text-sm font-medium">{a.vendor?.name || 'Unknown Vendor'}</p>

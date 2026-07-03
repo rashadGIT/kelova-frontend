@@ -53,7 +53,7 @@ function AddItemInlineForm({
   });
 
   return (
-    <div className="mt-2 p-3 border rounded-md bg-muted/40 space-y-2">
+    <div className="mt-2 p-3 border border-border rounded-xl bg-muted/40 space-y-2">
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label htmlFor={`qty-${item.id}`} className="text-xs">Quantity</Label>
@@ -139,10 +139,10 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
           ) : selections.length === 0 ? (
             <p className="text-sm text-muted-foreground">No items selected yet.</p>
           ) : (
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-xl border border-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-muted/50">
+                  <tr className="border-b border-border/60 bg-muted/50">
                     <th className="px-4 py-2 text-left font-medium">Item</th>
                     <th className="px-4 py-2 text-left font-medium">Category</th>
                     <th className="px-4 py-2 text-right font-medium">Qty</th>
@@ -151,7 +151,7 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
                     <th className="px-4 py-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-border/60">
                   {selections.map((s) => (
                     <tr key={s.id}>
                       <td className="px-4 py-2">
@@ -180,7 +180,7 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t bg-muted/30">
+                  <tr className="border-t border-border/60 bg-muted/30">
                     <td colSpan={4} className="px-4 py-2 text-sm font-medium text-right">Total</td>
                     <td className="px-4 py-2 text-right font-semibold">{formatPrice(total)}</td>
                     <td />
@@ -221,7 +221,7 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
                 const isExpanded = expandedItemId === item.id;
 
                 return (
-                  <div key={item.id} className="rounded-md border">
+                  <div key={item.id} className="rounded-xl border border-border">
                     <div className="flex items-center justify-between px-3 py-2">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">

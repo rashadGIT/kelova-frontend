@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+function resolveApiUrl(): string {
+  const candidates = [
+    process.env.API_URL,
+    process.env.NEXT_PUBLIC_API_URL,
+    'http://localhost:3001',
+  ];
+  for (const candidate of candidates) {
+    if (candidate) {
+      try {
+        new URL(candidate);
+        return candidate.replace(/\/$/, '');
+      } catch {
+        // not a valid absolute URL — skip
+      }
+    }
+  }
+  return 'http://localhost:3001';
+}
 
 // Same-origin proxy for the OAuth code exchange.
 // The browser calls this route (port 3000 → 3000, no CORS),
@@ -8,13 +25,37 @@ const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http:
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const res = await fetch(`${API_URL}/auth/exchange`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  // Resolve at request time so SSR env vars are fully populated
+  const API_URL = resolveApiUrl();
 
-  const data = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/auth/exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      {
+        error: `Backend unreachable: ${msg}`,
+        debug: { API_URL, raw_API_URL: process.env.API_URL, raw_NEXT_PUBLIC: process.env.NEXT_PUBLIC_API_URL },
+      },
+      { status: 502 },
+    );
+  }
+
+  const text = await res.text();
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return NextResponse.json(
+      { error: `Backend returned non-JSON (${res.status}): ${text.slice(0, 200)}` },
+      { status: 502 },
+    );
+  }
 
   const response = NextResponse.json(data, { status: res.status });
 

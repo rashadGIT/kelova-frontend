@@ -347,7 +347,7 @@ export default function PreNeedPage() {
       ) : (
         <>
           {/* Mobile: card list */}
-          <div className="md:hidden rounded-md border divide-y">
+          <div className="md:hidden rounded-xl border border-border divide-y divide-border/60">
             {arrangements.map((a) => (
               <div key={a.id} className="px-4 py-3 space-y-2">
                 <div className="flex items-start justify-between gap-2">
@@ -377,10 +377,10 @@ export default function PreNeedPage() {
           </div>
 
           {/* Desktop: table */}
-          <div className="hidden md:block rounded-md border overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-border overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr className="border-b border-border/60 bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">Client Name</th>
                   <th className="px-4 py-3 text-left font-medium">DOB</th>
                   <th className="px-4 py-3 text-left font-medium">Service Type</th>
@@ -390,7 +390,7 @@ export default function PreNeedPage() {
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border/60">
                 {arrangements.map((a) => (
                   <tr key={a.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-medium">{a.firstName} {a.lastName}</td>

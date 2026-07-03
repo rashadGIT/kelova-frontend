@@ -235,7 +235,7 @@ export default function MultiLocationSettingsPage() {
 
           {/* Search results */}
           {searchQuery.length >= 2 && !searching && searchResults.length > 0 && !selectedTenant && (
-            <div className="rounded-md border bg-popover shadow-sm divide-y">
+            <div className="rounded-xl border border-border bg-popover shadow-sm divide-y divide-border/60">
               {searchResults.map((t) => (
                 <button
                   key={t.id}

@@ -2,9 +2,17 @@ import type { NextConfig } from 'next';
 import path from 'path';
 import { withSentryConfig } from '@sentry/nextjs';
 
+// `next lint` loads this config under the same PHASE_PRODUCTION_BUILD as
+// `next build`, so NODE_ENV alone can't tell a real production build apart
+// from a local lint pass — exclude lint invocations explicitly so this guard
+// doesn't trip on every commit for devs running with NEXT_PUBLIC_DEV_AUTH_BYPASS=true
+// in .env.local (the standard local-dev setting).
+const isLintInvocation = process.argv.some((arg) => arg.includes('next-lint') || arg === 'lint');
+
 if (
   process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true' &&
-  process.env.NODE_ENV === 'production'
+  process.env.NODE_ENV === 'production' &&
+  !isLintInvocation
 ) {
   throw new Error(
     'FATAL: NEXT_PUBLIC_DEV_AUTH_BYPASS must not be true in a production build. Aborting.',

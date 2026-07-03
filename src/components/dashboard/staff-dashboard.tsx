@@ -84,6 +84,7 @@ export function StaffDashboard() {
           description="Assigned to you"
           loading={isLoading}
           href="/cases?filter=active"
+          intent="info"
         />
         <StatCard
           title="Open Tasks"
@@ -91,6 +92,7 @@ export function StaffDashboard() {
           icon={CheckSquare}
           description="Across your cases"
           loading={isLoading}
+          intent="muted"
         />
         <StatCard
           title="Overdue Tasks"
@@ -98,6 +100,7 @@ export function StaffDashboard() {
           icon={AlertCircle}
           description="Past due date"
           loading={isLoading}
+          intent="destructive"
         />
       </div>
 
@@ -116,7 +119,7 @@ export function StaffDashboard() {
             ) : !data?.overdueTasks.length ? (
               <p className="text-sm text-muted-foreground">No overdue tasks. You&apos;re all caught up.</p>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-border/60">
                 {data.overdueTasks.map((task) => (
                   <div key={task.id} className="py-2.5 flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -151,7 +154,7 @@ export function StaffDashboard() {
             ) : !data?.upcomingTasks.length ? (
               <p className="text-sm text-muted-foreground">No upcoming tasks.</p>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-border/60">
                 {data.upcomingTasks.map((task) => (
                   <div key={task.id} className="py-2.5 flex items-start justify-between gap-3">
                     <div className="min-w-0">

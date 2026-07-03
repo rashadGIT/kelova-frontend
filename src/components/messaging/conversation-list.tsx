@@ -39,8 +39,8 @@ export function ConversationList({
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full border-r">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="flex flex-col h-full border-r border-border">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="font-semibold text-sm">Messages</h2>
         <Button variant="ghost" size="icon" onClick={onNew} aria-label="New conversation">
           <Plus className="h-4 w-4" />
@@ -69,7 +69,7 @@ export function ConversationList({
               key={conv.id}
               onClick={() => onSelect(conv.id)}
               className={cn(
-                'w-full text-left px-4 py-3 border-b hover:bg-accent/50 transition-colors',
+                'w-full text-left px-4 py-3 border-b border-border/60 hover:bg-accent/50 transition-colors',
                 isActive && 'bg-accent',
               )}
             >

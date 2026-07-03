@@ -198,7 +198,7 @@ export default function PriceListPage() {
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 {categoryLabel[cat as PriceCategory]}
               </h3>
-              <div className="rounded-md border divide-y">
+              <div className="rounded-xl border border-border divide-y divide-border/60">
                 {catItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between px-4 py-3 gap-3">
                     <p className="text-sm font-medium flex-1 min-w-0">{item.name}</p>

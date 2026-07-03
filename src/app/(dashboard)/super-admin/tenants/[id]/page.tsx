@@ -93,7 +93,7 @@ export default function TenantDetailPage() {
       />
 
       {/* Settings card */}
-      <div className="rounded-md border p-5 space-y-5">
+      <div className="rounded-xl border border-border p-5 space-y-5">
         <h2 className="text-sm font-semibold">Settings</h2>
 
         <div className="flex items-center justify-between">
@@ -139,9 +139,15 @@ export default function TenantDetailPage() {
           </div>
         </div>
 
-        <div className="flex gap-4 text-sm text-muted-foreground pt-1 border-t">
-          <span>{tenant._count.users} users</span>
-          <span>{tenant._count.cases} cases</span>
+        <div className="flex gap-3 pt-1 border-t border-border">
+          <div className="flex-1 rounded-lg bg-muted/50 px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-0.5">Users</p>
+            <p className="text-2xl font-semibold tabular-nums">{tenant._count.users}</p>
+          </div>
+          <div className="flex-1 rounded-lg bg-muted/50 px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-0.5">Cases</p>
+            <p className="text-2xl font-semibold tabular-nums">{tenant._count.cases}</p>
+          </div>
         </div>
       </div>
 

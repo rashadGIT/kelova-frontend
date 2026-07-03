@@ -113,7 +113,7 @@ function AccommodationsContent({ caseId }: { caseId: string }) {
             </p>
           )}
           {hotels.map((hotel, i) => (
-            <div key={i} className="rounded-md border p-4 space-y-3">
+            <div key={i} className="rounded-xl border border-border p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">Hotel {i + 1}</span>
                 <Button

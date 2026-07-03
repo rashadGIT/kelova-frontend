@@ -91,7 +91,7 @@ export default function AdminUserDetailPage() {
         }
       />
 
-      <div className="rounded-md border p-5 space-y-5">
+      <div className="rounded-xl border border-border p-5 space-y-5">
         <h2 className="text-sm font-semibold">Settings</h2>
 
         {/* Active toggle */}
@@ -142,7 +142,7 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* Reset password */}
-        <div className="pt-2 border-t">
+        <div className="pt-2 border-t border-border/60">
           <Button
             variant="outline"
             size="sm"
