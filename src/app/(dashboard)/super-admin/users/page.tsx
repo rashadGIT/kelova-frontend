@@ -99,7 +99,7 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <p className="text-sm text-muted-foreground">No users found.</p>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="rounded-xl border border-border divide-y divide-border/60">
           {users.map((u) => <UserRow key={u.id} user={u} />)}
         </div>
       )}

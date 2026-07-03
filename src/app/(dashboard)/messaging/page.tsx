@@ -102,7 +102,7 @@ export default function MessagingPage() {
       <div className="hidden sm:flex flex-col flex-1 min-w-0 overflow-hidden">
         {activeConversationId ? (
           <>
-            <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0">
+            <div className="border-b border-border px-4 py-3 flex items-center gap-3 shrink-0">
               <div>
                 <p className="font-semibold text-sm">
                   {activeConversation

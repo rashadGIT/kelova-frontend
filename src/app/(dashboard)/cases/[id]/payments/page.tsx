@@ -476,7 +476,7 @@ function PaymentList({ caseId }: { caseId: string }) {
           No payments recorded yet.
         </p>
       ) : (
-        <div className="rounded-md border divide-y">
+        <div className="rounded-xl border border-border divide-y divide-border/60">
           <div className="flex items-center justify-between px-4 py-3">
             <div>
               <p className="text-sm font-medium capitalize">
@@ -753,7 +753,7 @@ function PaymentPlanTab({ caseId }: { caseId: string }) {
           <CardTitle className="text-base">Installments</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y">
+          <div className="divide-y divide-border/60">
             {plan.installments.map((inst) => (
               <div key={inst.id} className="flex items-center justify-between px-4 py-3">
                 <div>

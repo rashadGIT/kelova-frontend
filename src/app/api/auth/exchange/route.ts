@@ -19,13 +19,14 @@ function resolveApiUrl(): string {
   return 'http://localhost:3001';
 }
 
-const API_URL = resolveApiUrl();
-
 // Same-origin proxy for the OAuth code exchange.
 // The browser calls this route (port 3000 → 3000, no CORS),
 // and this server-side handler calls the NestJS backend (server-to-server, no CORS).
 export async function POST(req: NextRequest) {
   const body = await req.json();
+
+  // Resolve at request time so SSR env vars are fully populated
+  const API_URL = resolveApiUrl();
 
   let res: Response;
   try {
@@ -37,7 +38,10 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: `Backend unreachable (API_URL=${API_URL}): ${msg}` },
+      {
+        error: `Backend unreachable: ${msg}`,
+        debug: { API_URL, raw_API_URL: process.env.API_URL, raw_NEXT_PUBLIC: process.env.NEXT_PUBLIC_API_URL },
+      },
       { status: 502 },
     );
   }

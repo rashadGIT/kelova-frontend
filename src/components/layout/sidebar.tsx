@@ -65,10 +65,10 @@ function NavLink({
       onClick={onClick}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+        'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all duration-150',
         isActive
-          ? 'bg-accent text-accent-foreground font-semibold'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground font-normal',
+          ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground font-normal',
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />
@@ -129,8 +129,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo / brand */}
-      <div className="flex items-center gap-2 px-4 py-5 border-b">
-        <span className="text-lg font-semibold tracking-tight">Kelova</span>
+      <div className="flex items-center gap-2.5 px-4 pt-5 pb-4 border-b border-border/60">
+        <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-sm ring-1 ring-primary/20">
+          <span className="text-primary-foreground text-xs font-bold">K</span>
+        </div>
+        <span className="text-base font-semibold tracking-tight">Kelova</span>
       </div>
 
       {/* Tenant view banner */}
@@ -185,7 +188,7 @@ export function MobileSidebarTrigger() {
 // Desktop sidebar — always visible on md+
 export function Sidebar() {
   return (
-    <aside className="hidden md:flex md:w-56 md:flex-col md:fixed md:inset-y-0 border-r bg-card">
+    <aside className="hidden md:flex md:w-56 md:flex-col md:fixed md:inset-y-0 border-r border-border bg-card">
       <SidebarContent />
     </aside>
   );
