@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 import { cn } from '@/lib/utils/cn';
@@ -153,7 +153,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-border p-6 text-center space-y-3">
+      <div className="rounded-md border border-border p-6 text-center space-y-3">
         <p className="text-sm text-muted-foreground">Failed to load cases.</p>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           Retry
@@ -164,7 +164,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   if (cases.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-6 text-center space-y-2">
+      <div className="rounded-md border border-border p-6 text-center space-y-2">
         <p className="text-muted-foreground text-sm">No cases yet.</p>
         <p className="text-xs text-muted-foreground">
           Share your intake form link to get started.
@@ -178,7 +178,7 @@ export function CaseTable({ filter }: { filter?: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <div className="overflow-x-auto rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -236,7 +236,7 @@ export function CaseTable({ filter }: { filter?: string }) {
           <select
             value={String(pageSize)}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPageIndex(0); }}
-            className="h-9 w-[100px] rounded-md border border-input bg-background px-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="h-8 w-[100px] rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             aria-label="Rows per page"
           >
             {[10, 25, 50].map((n) => (

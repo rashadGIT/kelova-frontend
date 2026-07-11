@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Building2, TrendingUp, FolderOpen, Calendar } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/dashboard/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getMultiLocationSummary } from '@/lib/api/multi-location';
 
@@ -48,6 +48,7 @@ export default function MultiLocationPage() {
     <div className="space-y-6">
       <PageHeader
         title="Multi-Location"
+        hideTitle
         description="Analytics and case summaries across all locations in your group."
       />
 

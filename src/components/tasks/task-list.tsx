@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { TaskItem } from './task-item';
 import { getCaseTasks } from '@/lib/api/tasks';
 

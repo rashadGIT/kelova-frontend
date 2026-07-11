@@ -1,17 +1,22 @@
 'use client';
 
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { FolderOpen, AlertCircle, CalendarDays, FileSignature, DollarSign, AlertTriangle, Users } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { RecentCasesTable } from '@/components/dashboard/recent-cases-table';
+import { RecentCasesRail } from '@/components/dashboard/recent-cases-rail';
+import { ActivityRail } from '@/components/dashboard/activity-rail';
 import { StaffDashboard } from '@/components/dashboard/staff-dashboard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDashboardStats } from '@/lib/api/dashboard';
 import { getRevenueReport } from '@/lib/api/revenue';
+import { getCalendarEvents } from '@/lib/api/calendar';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { formatDateTime } from '@/lib/utils/format-date';
+import { EVENT_TYPE_COLORS } from '@/lib/constants/event-type-colors';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -91,17 +96,36 @@ function MonthlyBarChart({ data }: { data: { month: string; count: number; reven
   );
 }
 
-type StaffWorkload = { id: string; name: string; email: string; role: string; activeCases: number; overdueTaskCount: number };
+type StaffWorkload = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  activeCases: number;
+  overdueTaskCount: number;
+  completedCases: number;
+  avgResolutionDays: number | null;
+};
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  return user?.role === 'staff' ? (
-    <div className="space-y-6">
-      <PageHeader title="Dashboard" />
-      <StaffDashboard />
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+      <div className="space-y-6">
+        <RecentCasesRail />
+        <ActivityRail />
+      </div>
+      <div>
+        {user?.role === 'staff' ? (
+          <div className="space-y-6">
+            <PageHeader title="Dashboard" hideTitle />
+            <StaffDashboard />
+          </div>
+        ) : (
+          <DirectorDashboard />
+        )}
+      </div>
     </div>
-  ) : (
-    <DirectorDashboard />
   );
 }
 
@@ -131,9 +155,16 @@ function DirectorDashboard() {
     queryFn: () => apiClient.get('/analytics/staff-workload').then((r) => r.data),
   });
 
+  const nowIso = now.toISOString();
+  const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: upcomingEvents, isLoading: eventsLoading } = useQuery({
+    queryKey: ['upcoming-events'],
+    queryFn: () => getCalendarEvents(nowIso, in7Days),
+  });
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" />
+      {/* <PageHeader title="Dashboard" hideTitle /> */}
 
       {/* Row 1: 4 operational stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -270,8 +301,60 @@ function DirectorDashboard() {
         </Card>
       </div>
 
-      {/* Staff workload */}
-      <Card>
+      {/* Row 4: Upcoming events — sits under Cases by Month / Revenue by Service Type */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Upcoming Events</CardTitle>
+            <p className="text-xs text-muted-foreground">Next 7 days</p>
+          </CardHeader>
+          <CardContent>
+            {eventsLoading ? (
+              <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            ) : upcomingEvents && upcomingEvents.length > 0 ? (
+              <div className="space-y-3">
+                {[...upcomingEvents]
+                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .slice(0, 5)
+                  .map((event) => {
+                    const row = (
+                      <div className="flex items-start gap-2">
+                        <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${EVENT_TYPE_COLORS[event.eventType] ?? 'bg-gray-400'}`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{event.title}</p>
+                          <p className="text-xs text-muted-foreground">{formatDateTime(event.startTime)}</p>
+                        </div>
+                      </div>
+                    );
+                    return event.caseId ? (
+                      <Link
+                        key={event.id}
+                        href={`/cases/${event.caseId}`}
+                        className="block -mx-2 px-2 py-1 rounded-md hover:bg-muted transition-colors"
+                      >
+                        {row}
+                      </Link>
+                    ) : (
+                      <div key={event.id} className="-mx-2 px-2 py-1">
+                        {row}
+                      </div>
+                    );
+                  })}
+                <Link
+                  href="/calendar"
+                  className="block pt-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View all →
+                </Link>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No events scheduled in the next 7 days.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Staff workload */}
+        <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Users className="h-4 w-4" />
@@ -283,12 +366,21 @@ function DirectorDashboard() {
             <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
           ) : workload && workload.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col />
+                  <col className="w-28" />
+                  <col className="w-28" />
+                  <col className="w-32" />
+                  <col className="w-32" />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-border/50">
                     <th className="pb-3 px-1 text-left font-medium text-muted-foreground">Staff Member</th>
-                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Active Cases</th>
-                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Overdue Tasks</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Active</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Overdue</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Completed</th>
+                    <th className="pb-3 px-1 text-right font-medium text-muted-foreground">Avg. Resolution</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -306,6 +398,10 @@ function DirectorDashboard() {
                           <span className="text-muted-foreground">0</span>
                         )}
                       </td>
+                      <td className="py-3 px-1 text-right tabular-nums">{member.completedCases}</td>
+                      <td className="py-3 px-1 text-right tabular-nums text-muted-foreground">
+                        {member.avgResolutionDays !== null ? `${member.avgResolutionDays}d` : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -316,9 +412,8 @@ function DirectorDashboard() {
           )}
         </CardContent>
       </Card>
-
-      {/* Recent cases table */}
-      <RecentCasesTable />
+      </div>
     </div>
   );
 }
+

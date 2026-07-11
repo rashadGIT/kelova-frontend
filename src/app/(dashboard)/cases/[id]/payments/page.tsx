@@ -17,8 +17,8 @@ import {
 import type { IPaymentPlan, IPaymentInstallment } from '@/types';
 import { cn } from '@/lib/utils/cn';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
+import { Button } from '@/components/dashboard/ui/button';
 import {
   Dialog,
   DialogContent,

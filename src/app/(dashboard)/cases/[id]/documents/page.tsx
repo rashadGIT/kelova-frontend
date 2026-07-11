@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
 import { DocumentUpload } from '@/components/documents/document-upload';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils/cn';
 import { getAllOpenTasks, type ITaskWithCase } from '@/lib/api/tasks';
@@ -75,7 +75,7 @@ function Section({ title, tasks, badge, badgeVariant }: {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</h2>
         {badge && <Badge variant={badgeVariant ?? 'secondary'}>{badge}</Badge>}
       </div>
-      <div className="rounded-xl border border-border divide-y divide-border/60 bg-card">
+      <div className="rounded-md border border-border divide-y divide-border/60 bg-card">
         {tasks.map((t) => <TaskRow key={t.id} task={t} />)}
       </div>
     </div>
@@ -105,7 +105,7 @@ export default function TasksPage() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-border p-4 text-center space-y-2">
+        <div className="rounded-md border border-border p-4 text-center space-y-2">
           <p className="text-sm text-muted-foreground">Failed to load tasks.</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
         </div>

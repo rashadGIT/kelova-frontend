@@ -10,11 +10,13 @@ export { SignatureDocument } from './enums/signature-document.enum';
 export { PriceCategory } from './enums/price-category.enum';
 export { EventType } from './enums/event-type.enum';
 export { AuditAction } from './enums/audit-action.enum';
+export { DispositionType } from './enums/disposition-type.enum';
+export { MaritalStatus } from './enums/marital-status.enum';
 
 // Interfaces
 export type { IAuditLog } from './interfaces/audit-log.interface';
 export type { ICalendarEvent } from './interfaces/calendar-event.interface';
-export type { ICase } from './interfaces/case.interface';
+export type { ICase, ICaseTabSummary } from './interfaces/case.interface';
 export type { ICaseLineItem } from './interfaces/case-line-item.interface';
 export type { IDocument } from './interfaces/document.interface';
 export type { IFamilyContact } from './interfaces/family-contact.interface';

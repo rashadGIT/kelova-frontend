@@ -4,67 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Check, ChevronDown } from 'lucide-react';
-import { SendIntakeFormButton } from '@/components/cases/send-intake-form-button';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils/cn';
+import { allTabs, mobileGroups as groups } from './case-nav-groups';
 
-const groups = [
-  {
-    label: 'Main',
-    tabs: [
-      { label: 'Overview', href: '' },
-      { label: 'Tasks', href: '/tasks' },
-      { label: 'Documents', href: '/documents' },
-      { label: 'Payments', href: '/payments' },
-    ],
-  },
-  {
-    label: 'Intake & Legal',
-    tabs: [
-      { label: 'First Call', href: '/first-call' },
-      { label: 'Death Certificate', href: '/death-certificate' },
-      { label: 'Cremation Auth', href: '/cremation-auth' },
-      { label: 'Signatures', href: '/signatures' },
-    ],
-  },
-  {
-    label: 'Arrangements',
-    tabs: [
-      { label: 'Arrangement', href: '/arrangement' },
-      { label: 'Merchandise', href: '/merchandise' },
-      { label: 'Cemetery', href: '/cemetery' },
-      { label: 'Memorial', href: '/memorial' },
-      { label: 'Accommodations', href: '/accommodations' },
-    ],
-  },
-  {
-    label: 'Family & Follow-up',
-    tabs: [
-      { label: 'Obituary', href: '/obituary' },
-      { label: 'Follow-ups', href: '/follow-ups' },
-      { label: 'Photos', href: '/photos' },
-      { label: 'Veteran Benefits', href: '/veteran-benefits' },
-    ],
-  },
-  {
-    label: 'Operations',
-    tabs: [
-      { label: 'Vendors', href: '/vendors' },
-      { label: 'Tracking', href: '/tracking' },
-    ],
-  },
-];
-
-const allTabs = [
-  { label: 'Overview', href: '' },
-  { label: 'Tasks', href: '/tasks' },
-  { label: 'Documents', href: '/documents' },
-  { label: 'Payments', href: '/payments' },
-  ...groups.flatMap((g) => g.tabs),
-];
-
-export function CaseMobileHeader({ caseId, caseName }: { caseId: string; caseName: string }) {
+export function CaseMobileHeader({ caseId }: { caseId: string }) {
   const pathname = usePathname();
   const base = `/cases/${caseId}`;
   const [open, setOpen] = useState(false);
@@ -76,21 +21,14 @@ export function CaseMobileHeader({ caseId, caseName }: { caseId: string; caseNam
 
   return (
     <div className="sm:hidden mb-6">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground truncate">{caseName}</span>
-      </div>
-
       <Sheet open={open} onOpenChange={setOpen}>
-        <div className="flex items-center justify-between gap-3">
-          <button
-            onClick={() => setOpen(true)}
-            className="flex items-center gap-1.5 text-2xl font-semibold text-left group"
-          >
-            {active.label}
-            <ChevronDown className="h-5 w-5 text-muted-foreground mt-0.5 group-hover:text-foreground transition-colors" />
-          </button>
-          <SendIntakeFormButton caseId={caseId} />
-        </div>
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1.5 text-2xl font-semibold text-left group"
+        >
+          {active.label}
+          <ChevronDown className="h-5 w-5 text-muted-foreground mt-0.5 group-hover:text-foreground transition-colors" />
+        </button>
         <SheetContent side="bottom" className="!z-[60] pb-20 max-h-[80vh] overflow-y-auto">
           <SheetHeader className="mb-4">
             <SheetTitle className="text-left">Sections</SheetTitle>

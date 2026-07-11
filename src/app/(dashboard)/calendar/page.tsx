@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
@@ -16,23 +16,14 @@ import { Plus, ChevronLeft, ChevronRight, Video, Copy } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { getCalendarEvents, createCalendarEvent, updateEventStreaming } from '@/lib/api/calendar';
 import type { ICalendarEvent } from '@/types';
+import { EventType } from '@/types';
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isToday, isSameDay,
   format,
 } from 'date-fns';
-import { EventType } from '@/types';
 import { cn } from '@/lib/utils/cn';
-
-const EVENT_TYPE_COLORS: Record<EventType, string> = {
-  [EventType.visitation]:  'bg-blue-500',
-  [EventType.service]:     'bg-purple-500',
-  [EventType.committal]:   'bg-slate-500',
-  [EventType.pickup]:      'bg-orange-500',
-  [EventType.preparation]: 'bg-yellow-500',
-  [EventType.meeting]:     'bg-green-500',
-  [EventType.other]:       'bg-gray-400',
-};
+import { EVENT_TYPE_COLORS } from '@/lib/constants/event-type-colors';
 
 const MONTH_NAMES = [
   'January','February','March','April','May','June',
@@ -172,7 +163,7 @@ function StreamingPanel({ event }: { event: ICalendarEvent }) {
   });
 
   return (
-    <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3 space-y-3">
+    <div className="mt-3 rounded-md border border-border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Video className="h-4 w-4 text-muted-foreground" />
@@ -268,7 +259,7 @@ function MonthGrid({ currentMonth, selectedDate, events, onDayClick, onMonthChan
   });
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="rounded-md border border-border bg-card overflow-hidden">
       {/* Month navigation */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
         <Button
@@ -400,6 +391,7 @@ export default function CalendarPage() {
     <div className="space-y-4">
       <PageHeader
         title="Calendar"
+        hideTitle
         action={<NewEventDialog onCreated={handleEventCreated} defaultDate={selectedDate} />}
       />
 

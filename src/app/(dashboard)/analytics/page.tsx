@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getMyPerformance, getBenchmarks } from '@/lib/api/analytics';
 
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Analytics" />
+      <PageHeader title="Analytics" hideTitle />
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

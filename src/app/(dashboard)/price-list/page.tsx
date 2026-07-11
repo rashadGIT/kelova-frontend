@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,7 @@ export default function PriceListPage() {
     <div className="space-y-6">
       <PageHeader
         title="Price List"
+        hideTitle
         description="FTC General Price List — manage categories and items."
         action={
           <div className="flex items-center gap-2 flex-wrap">

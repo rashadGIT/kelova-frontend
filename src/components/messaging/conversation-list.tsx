@@ -3,7 +3,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useMessagingStore } from '@/lib/store/messaging.store';
 import { useAuthStore } from '@/lib/store/auth.store';
@@ -41,7 +41,7 @@ export function ConversationList({
   return (
     <div className="flex flex-col h-full border-r border-border">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="font-semibold text-sm">Messages</h2>
+        <h2 className="font-semibold text-sm">Chats</h2>
         <Button variant="ghost" size="icon" onClick={onNew} aria-label="New conversation">
           <Plus className="h-4 w-4" />
         </Button>

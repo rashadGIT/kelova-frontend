@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -161,6 +161,7 @@ export default function AdminTenantsPage() {
     <div className="space-y-4">
       <PageHeader
         title="Funeral Homes"
+        hideTitle
         description="Manage all tenant accounts."
         action={<CreateTenantDialog onSuccess={() => queryClient.invalidateQueries({ queryKey: ['admin-tenants'] })} />}
       />
