@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -20,6 +20,7 @@ import {
   Sparkles,
   ClipboardEdit,
   Send,
+  ScrollText,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -208,7 +209,19 @@ function DocumentRow({
   );
 }
 
-function UploadButton({ accessToken, onUploaded }: { accessToken: string; onUploaded: () => void }) {
+function UploadButton({
+  accessToken,
+  onUploaded,
+  documentType = 'other',
+  label = 'Share a Document',
+  accept,
+}: {
+  accessToken: string;
+  onUploaded: () => void;
+  documentType?: string;
+  label?: string;
+  accept?: string;
+}) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -217,13 +230,17 @@ function UploadButton({ accessToken, onUploaded }: { accessToken: string; onUplo
     try {
       const { data } = await publicApiClient.post<{ uploadUrl: string; documentId: string }>(
         `/family-portal/${accessToken}/documents`,
-        { fileName: file.name, contentType: file.type || 'application/octet-stream', documentType: 'other' },
+        { fileName: file.name, contentType: file.type || 'application/octet-stream', documentType },
       );
       await fetch(data.uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type || 'application/octet-stream' },
       });
+      // Without this, the document row stays uploaded: false forever and
+      // never surfaces in staff-facing lists (findByCase/findPhotos both
+      // filter on uploaded: true) — this was missing entirely before.
+      await publicApiClient.patch(`/family-portal/${accessToken}/documents/${data.documentId}/confirm`);
       toast.success(`${file.name} uploaded successfully`);
       onUploaded();
     } catch {
@@ -238,6 +255,7 @@ function UploadButton({ accessToken, onUploaded }: { accessToken: string; onUplo
       <input
         ref={fileRef}
         type="file"
+        accept={accept}
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -253,9 +271,99 @@ function UploadButton({ accessToken, onUploaded }: { accessToken: string; onUplo
         className="flex items-center gap-2"
       >
         <Upload className="h-4 w-4" />
-        {uploading ? 'Uploading…' : 'Share a Document'}
+        {uploading ? 'Uploading…' : label}
       </Button>
     </>
+  );
+}
+
+interface PortalPhoto {
+  id: string;
+  fileName: string;
+  url: string;
+}
+
+// Photo contribution is always available (so the family can add photos any
+// time, for staff to pick from) — the PDF preview itself only appears once
+// staff explicitly shares it (gated server-side by TributeBook.sharedWithFamilyAt).
+function TributeBookSection({ accessToken }: { accessToken: string }) {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PortalPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    setLoading(true);
+    const photosRes = await publicApiClient
+      .get<PortalPhoto[]>(`/family-portal/${accessToken}/photos`)
+      .catch(() => ({ data: [] as PortalPhoto[] }));
+    setPhotos(photosRes.data);
+    try {
+      const pdfRes = await publicApiClient.get<{ url: string }>(
+        `/family-portal/${accessToken}/tribute-book/pdf-url`,
+      );
+      setPdfUrl(pdfRes.data.url);
+    } catch {
+      // Not shared yet — a valid state, not an error to surface.
+      setPdfUrl(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
+
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+        Tribute Book
+      </p>
+      <Card className="p-5 space-y-4">
+        {loading ? (
+          <Skeleton className="h-40 w-full" />
+        ) : pdfUrl ? (
+          <iframe src={pdfUrl} className="w-full h-[500px] rounded-md border" />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Your funeral home hasn&apos;t shared a tribute book draft yet — but you can
+            add photos below for them to include.
+          </p>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium">Add Your Photos</p>
+            <UploadButton
+              accessToken={accessToken}
+              documentType="photo"
+              label="Add a Photo"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onUploaded={() => void load()}
+            />
+          </div>
+          {photos.length > 0 && (
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {photos.map((photo) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={photo.id}
+                  src={photo.url}
+                  alt={photo.fileName}
+                  className="w-full aspect-square object-cover rounded-md"
+                />
+              ))}
+            </div>
+          )}
+          {pdfUrl && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Have feedback on the book? Leave a note below and your funeral home will see it.
+            </p>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -464,6 +572,30 @@ export function FamilyPortalView({ data, accessToken }: { data: PortalData; acce
                 </div>
               </div>
             )}
+
+            {/* Obituary draft (only shown once staff shares it) */}
+            {data.obituary && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                  Obituary Draft
+                </p>
+                <Card className="p-5">
+                  <div className="flex items-start gap-3">
+                    <ScrollText className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm leading-7 whitespace-pre-wrap text-foreground">
+                        {data.obituary.plainText}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-3">
+                        Have feedback on the draft? Leave a note below and your funeral home will see it.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            <TributeBookSection accessToken={accessToken} />
 
             {/* Send us a message */}
             <div>

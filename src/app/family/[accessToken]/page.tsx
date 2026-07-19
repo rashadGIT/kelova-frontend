@@ -31,6 +31,8 @@ export interface PortalData {
   case: PortalCase | null;
   contacts: { id: string; name: string; relationship: string; isPrimaryContact: boolean }[];
   documents: PortalDocument[];
+  obituary: { plainText: string; sharedWithFamilyAt: string } | null;
+  tributeBook: { generatedDocumentId: string | null; sharedWithFamilyAt: string } | null;
 }
 
 async function fetchPortalData(accessToken: string): Promise<PortalData | null> {

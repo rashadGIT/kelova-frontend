@@ -45,8 +45,6 @@ export const groups: CaseNavGroup[] = [
     label: 'Family & Follow-up',
     tabs: [
       { label: 'Obituary', href: '/obituary' },
-      { label: 'Follow-ups', href: '/follow-ups' },
-      { label: 'Photos', href: '/photos' },
       { label: 'Veteran Benefits', href: '/veteran-benefits' },
     ],
   },

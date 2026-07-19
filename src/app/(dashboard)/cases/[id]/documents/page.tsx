@@ -216,14 +216,14 @@ function DocumentList({ caseId }: { caseId: string }) {
     <>
       <div className="rounded-xl border border-border divide-y divide-border/60">
         {docs.map((doc) => (
-          <div key={doc.id} className="flex items-center justify-between px-4 py-3">
-            <div>
-              <p className="text-sm font-medium">{doc.fileName}</p>
-              <p className="text-xs text-muted-foreground">
+          <div key={doc.id} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{doc.fileName}</p>
+              <p className="text-xs text-muted-foreground truncate">
                 {doc.documentType} &middot; {formatDate(doc.createdAt)}
               </p>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"

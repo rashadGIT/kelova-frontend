@@ -56,10 +56,6 @@ function buildTabSummaryRows(caseId: string, summary: ICaseTabSummary, veteranSt
       value: summary.accommodationPage.linkCount > 0 ? `${summary.accommodationPage.linkCount} links added` : 'None added',
     },
     {
-      label: 'Follow-ups',
-      value: `${summary.followUps.scheduledCount} scheduled`,
-    },
-    {
       label: 'Photos',
       value: summary.photos.count > 0 ? `${summary.photos.count} photos` : 'None uploaded',
     },

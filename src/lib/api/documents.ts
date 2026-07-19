@@ -13,11 +13,22 @@ export async function getCaseDocuments(caseId: string): Promise<IDocument[]> {
   return res.data;
 }
 
-export async function getPresignedUploadUrl(caseId: string, fileName: string, fileType: string, documentType: DocumentType): Promise<PresignedUrlResponse> {
-  const res = await apiClient.post<PresignedUrlResponse>('/documents/presigned-url', {
-    caseId, fileName, fileType, documentType,
+export async function getPresignedUploadUrl(
+  caseId: string,
+  fileName: string,
+  contentType: string,
+  documentType: DocumentType,
+): Promise<PresignedUrlResponse> {
+  const res = await apiClient.post<PresignedUrlResponse>(`/cases/${caseId}/documents/presign`, {
+    fileName,
+    contentType,
+    documentType,
   });
   return res.data;
+}
+
+export async function confirmDocumentUpload(caseId: string, documentId: string): Promise<void> {
+  await apiClient.post(`/cases/${caseId}/documents/confirm`, { documentId });
 }
 
 export async function getDocumentDownloadUrl(documentId: string): Promise<string> {
@@ -30,6 +41,13 @@ export async function generateReceipt(
 ): Promise<{ documentId: string; url: string }> {
   const res = await apiClient.post<{ documentId: string; url: string }>(
     `/cases/${caseId}/receipts/generate`,
+  );
+  return res.data;
+}
+
+export async function generateGplPdf(caseId: string): Promise<{ documentId: string; url: string }> {
+  const res = await apiClient.post<{ documentId: string; url: string }>(
+    `/cases/${caseId}/gpl/generate`,
   );
   return res.data;
 }

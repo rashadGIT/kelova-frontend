@@ -74,8 +74,8 @@ function ItemDialog({
       ? {
           name: item.name,
           category: item.category,
-          retailPrice: item.retailPrice,
-          costPrice: item.costPrice ?? '',
+          retailPrice: item.priceRetail,
+          costPrice: item.priceCost ?? '',
           sku: item.sku ?? '',
           description: item.description ?? '',
         }
@@ -87,8 +87,8 @@ function ItemDialog({
       createMerchandise({
         name: values.name,
         category: values.category,
-        retailPrice: values.retailPrice,
-        costPrice: values.costPrice ? Number(values.costPrice) : undefined,
+        priceRetail: values.retailPrice,
+        priceCost: values.costPrice ? Number(values.costPrice) : undefined,
         sku: values.sku || undefined,
         description: values.description || undefined,
       }),
@@ -106,8 +106,8 @@ function ItemDialog({
       updateMerchandise(item!.id, {
         name: values.name,
         category: values.category,
-        retailPrice: values.retailPrice,
-        costPrice: values.costPrice ? Number(values.costPrice) : undefined,
+        priceRetail: values.retailPrice,
+        priceCost: values.costPrice ? Number(values.costPrice) : undefined,
         sku: values.sku || undefined,
         description: values.description || undefined,
       }),
@@ -314,7 +314,7 @@ export default function MerchandiseCatalogPage() {
                     {item.category}
                   </Badge>
                 </div>
-                <p className="text-lg font-semibold">{formatPrice(item.retailPrice)}</p>
+                <p className="text-lg font-semibold">{formatPrice(item.priceRetail)}</p>
                 <div className="flex items-center justify-between">
                   <span className={`text-xs font-medium ${item.inStock ? 'text-green-600' : 'text-muted-foreground'}`}>
                     {item.inStock ? 'In Stock' : 'Out of Stock'}

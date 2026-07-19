@@ -5,6 +5,7 @@ export interface SubmitObituaryDto {
   outlet: string;
   contactName?: string;
   contactEmail?: string;
+  outletEmail?: string;
   notes?: string;
 }
 
@@ -53,6 +54,15 @@ export async function updateSubmissionStatus(
   const res = await apiClient.patch<IObituarySubmission>(
     `/obituary-submissions/${submissionId}/status`,
     { status },
+  );
+  return res.data;
+}
+
+export async function emailToOutlet(
+  submissionId: string,
+): Promise<{ sent: true; to: string }> {
+  const res = await apiClient.post<{ sent: true; to: string }>(
+    `/obituary-submissions/${submissionId}/email`,
   );
   return res.data;
 }

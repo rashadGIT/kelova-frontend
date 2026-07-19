@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn';
 import { CaseStageProgress } from './case-stage-progress';
 import { SendIntakeFormButton } from './send-intake-form-button';
 import { DetailBlockLink, titleCase, tabHref } from './case-detail-shared';
+import { CaseFollowUpsWidget } from './case-followups-widget';
 import { getCaseById } from '@/lib/api/cases';
 import { formatDate } from '@/lib/utils/format-date';
 import { serviceTypeLabel } from '@/lib/utils/case-labels';
@@ -229,6 +230,8 @@ export function CaseDetailSidebar({ caseId, initialData }: { caseId: string; ini
           </div>
         </CardContent>
       </Card>
+
+      <CaseFollowUpsWidget caseId={caseId} />
 
       <SidebarSection title="Milestones">
         <div className="space-y-1">

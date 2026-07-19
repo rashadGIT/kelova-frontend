@@ -2,7 +2,6 @@ import { apiClient } from './client';
 import type { IPaymentPlan, IPaymentInstallment } from '@/types';
 
 export interface CreatePaymentPlanDto {
-  totalAmount: number;
   downPayment: number;
   numberOfInstallments: number;
   frequencyDays: number;

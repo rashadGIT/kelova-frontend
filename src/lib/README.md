@@ -58,7 +58,7 @@ Exports `configureAmplify()`. Called once in `app/layout.tsx` via `AmplifyClient
 
 ### `store/auth.store.ts`
 
-Zustand store with `persist` middleware (key: `vigil-user`, `skipHydration: true`).
+Zustand store with `persist` middleware (key: `kelova-user`, `skipHydration: true`).
 
 ```ts
 interface AuthUser {

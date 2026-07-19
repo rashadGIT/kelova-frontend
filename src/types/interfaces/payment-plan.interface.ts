@@ -3,6 +3,7 @@ export interface IPaymentInstallment {
   planId: string;
   tenantId: string;
   installmentNumber: number;
+  isDownPayment: boolean;
   amount: number;
   dueDate: string;
   status: 'pending' | 'paid' | 'overdue' | 'waived';
