@@ -84,7 +84,11 @@ type RefundFormValues = z.infer<typeof refundSchema>;
 function CasePaymentsView({ caseId }: { caseId: string }) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['payments', caseId],
     queryFn: () => getCasePayments(caseId),
   });
@@ -201,6 +205,16 @@ function CasePaymentsView({ caseId }: { caseId: string }) {
   });
 
   if (isLoading) return <Skeleton className="h-48 w-full" />;
+
+  if (isError || !data) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Failed to load payment summary for this case.
+        </CardContent>
+      </Card>
+    );
+  }
 
   const payment = data as IPayment;
   const totalAmount = Number(payment.totalAmount);
