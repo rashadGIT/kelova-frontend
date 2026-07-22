@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 jest.mock('@/lib/store/auth.store', () => ({
@@ -31,6 +30,7 @@ jest.mock('@/lib/api/client', () => ({
 jest.mock('@/lib/utils/format-date', () => ({
   formatRelative: jest.fn(() => '1 day ago'),
   formatDate: jest.fn(() => 'Jan 1, 2025'),
+  formatDateTime: jest.fn(() => 'Jan 1, 2025 12:00 PM'),
   isOverdue: jest.fn(() => false),
 }));
 
@@ -38,7 +38,6 @@ jest.mock('sonner', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
-import { useRouter } from 'next/navigation';
 import { getDashboardStats, getRecentCases } from '@/lib/api/dashboard';
 import { getRevenueReport } from '@/lib/api/revenue';
 import { useAuthStore } from '@/lib/store/auth.store';
@@ -153,17 +152,12 @@ describe('Acceptance: Dashboard page', () => {
     expect(screen.getByText('Robert Hill')).toBeInTheDocument();
   });
 
-  it('navigates to /cases/:id when a case row is clicked', async () => {
-    const mockPush = jest.fn();
-    jest.mocked(useRouter).mockReturnValue({ push: mockPush } as unknown as ReturnType<typeof useRouter>);
-
-    const user = userEvent.setup();
+  it('links to /cases/:id from a recent case row', async () => {
     renderWithQuery(<DashboardPage />);
 
     await waitFor(() => screen.getByText('Martha Green'));
-    await user.click(screen.getByText('Martha Green'));
 
-    expect(mockPush).toHaveBeenCalledWith('/cases/case-abc');
+    expect(screen.getByText('Martha Green').closest('a')).toHaveAttribute('href', '/cases/case-abc');
   });
 
   it('renders Revenue by Service Type table rows when data is available', async () => {
@@ -253,14 +247,25 @@ describe('Acceptance: Dashboard page — staff user', () => {
       selector({ user: { role: 'staff' } }),
     );
 
-    (apiClient.get as jest.Mock).mockResolvedValue({ data: [] });
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      data: {
+        activeCaseCount: 0,
+        openTaskCount: 0,
+        overdueTaskCount: 0,
+        myCases: [],
+        overdueTasks: [],
+        upcomingTasks: [],
+        upcomingEvents: [],
+      },
+    });
   });
 
   it('renders StaffDashboard when user role is staff', async () => {
     renderWithQuery(<DashboardPage />);
-    // StaffDashboard renders a "Dashboard" heading via PageHeader
+    // The page's PageHeader hides its "Dashboard" title (hideTitle) for staff,
+    // so assert on a heading unique to StaffDashboard instead.
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('My Cases')).toBeInTheDocument();
     });
   });
 });

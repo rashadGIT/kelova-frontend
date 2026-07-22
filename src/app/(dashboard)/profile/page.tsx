@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
 import { useAuthStore } from '@/lib/store/auth.store';
 
 const ROLE_LABELS: Record<string, string> = {

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -89,6 +89,7 @@ export default function VendorsPage() {
     <div className="space-y-4">
       <PageHeader
         title="Vendors"
+        hideTitle
         description="Manage your vendor directory."
         action={!isStaff ? <AddVendorDialog onSuccess={() => {}} /> : undefined}
       />

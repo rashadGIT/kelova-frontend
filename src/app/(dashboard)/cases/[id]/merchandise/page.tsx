@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Search, Plus, X } from 'lucide-react';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
+import { Button } from '@/components/dashboard/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -122,7 +122,7 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
   });
 
   const total = selections.reduce(
-    (sum, s) => sum + s.item.retailPrice * s.quantity,
+    (sum, s) => sum + s.priceAtTime * s.quantity,
     0,
   );
 
@@ -162,9 +162,9 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
                         <Badge variant="outline" className="text-xs capitalize">{s.item.category}</Badge>
                       </td>
                       <td className="px-4 py-2 text-right">{s.quantity}</td>
-                      <td className="px-4 py-2 text-right">{formatPrice(s.item.retailPrice)}</td>
+                      <td className="px-4 py-2 text-right">{formatPrice(s.priceAtTime)}</td>
                       <td className="px-4 py-2 text-right font-medium">
-                        {formatPrice(s.item.retailPrice * s.quantity)}
+                        {formatPrice(s.priceAtTime * s.quantity)}
                       </td>
                       <td className="px-4 py-2 text-right">
                         <Button
@@ -228,7 +228,7 @@ function CaseMerchandisePage({ caseId }: { caseId: string }) {
                           <p className="text-sm font-medium truncate">{item.name}</p>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs capitalize">{item.category}</Badge>
-                            <span className="text-xs text-muted-foreground">{formatPrice(item.retailPrice)}</span>
+                            <span className="text-xs text-muted-foreground">{formatPrice(item.priceRetail)}</span>
                           </div>
                         </div>
                       </div>

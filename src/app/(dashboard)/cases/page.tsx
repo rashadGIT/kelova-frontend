@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/layout/page-header';
 import { CaseTable } from '@/components/cases/case-table';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import Link from 'next/link';
 
 const FILTER_LABELS: Record<string, string> = {
@@ -23,6 +23,7 @@ export default async function CasesPage({
     <div>
       <PageHeader
         title={title}
+        hideTitle={!filter}
         description={description}
         action={
           <Button asChild size="sm">

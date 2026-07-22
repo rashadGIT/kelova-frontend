@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, CalendarDays, CheckSquare, FolderOpen } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from './stat-card';
@@ -116,7 +116,7 @@ export function StaffDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
-            ) : !data?.overdueTasks.length ? (
+            ) : !data?.overdueTasks?.length ? (
               <p className="text-sm text-muted-foreground">No overdue tasks. You&apos;re all caught up.</p>
             ) : (
               <div className="divide-y divide-border/60">
@@ -151,7 +151,7 @@ export function StaffDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
-            ) : !data?.upcomingTasks.length ? (
+            ) : !data?.upcomingTasks?.length ? (
               <p className="text-sm text-muted-foreground">No upcoming tasks.</p>
             ) : (
               <div className="divide-y divide-border/60">
@@ -185,7 +185,7 @@ export function StaffDashboard() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-          ) : !data?.myCases.length ? (
+          ) : !data?.myCases?.length ? (
             <p className="text-sm text-muted-foreground">No active cases assigned to you.</p>
           ) : (
             <div className="divide-y">
@@ -220,7 +220,7 @@ export function StaffDashboard() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-          ) : !data?.upcomingEvents.length ? (
+          ) : !data?.upcomingEvents?.length ? (
             <p className="text-sm text-muted-foreground">No events scheduled in the next 7 days.</p>
           ) : (
             <div className="divide-y">

@@ -10,16 +10,27 @@ export { SignatureDocument } from './enums/signature-document.enum';
 export { PriceCategory } from './enums/price-category.enum';
 export { EventType } from './enums/event-type.enum';
 export { AuditAction } from './enums/audit-action.enum';
+export { DispositionType } from './enums/disposition-type.enum';
+export { MaritalStatus } from './enums/marital-status.enum';
 
 // Interfaces
 export type { IAuditLog } from './interfaces/audit-log.interface';
 export type { ICalendarEvent } from './interfaces/calendar-event.interface';
-export type { ICase } from './interfaces/case.interface';
+export type { ICase, ICaseTabSummary } from './interfaces/case.interface';
 export type { ICaseLineItem } from './interfaces/case-line-item.interface';
 export type { IDocument } from './interfaces/document.interface';
 export type { IFamilyContact } from './interfaces/family-contact.interface';
 export type { IFollowUp } from './interfaces/follow-up.interface';
-export type { IObituary } from './interfaces/obituary.interface';
+export type {
+  IObituary,
+  IObituaryContent,
+  ObituaryBlock,
+  IHeadingBlock,
+  IParagraphBlock,
+  IImageBlock,
+  IDividerBlock,
+  IPageBreakBlock,
+} from './interfaces/obituary.interface';
 export type { IPayment } from './interfaces/payment.interface';
 export type { IPriceListItem } from './interfaces/price-list-item.interface';
 export type { ISignature } from './interfaces/signature.interface';

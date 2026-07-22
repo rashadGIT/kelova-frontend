@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, KeyboardEvent } from 'react';
 import { Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 interface MessageInputProps {

@@ -87,7 +87,7 @@ export default function MessagingPage() {
   );
 
   return (
-    <div className="fixed inset-x-0 top-14 bottom-14 md:bottom-0 md:left-56 flex overflow-hidden">
+    <div className="fixed inset-x-0 top-14 bottom-14 md:bottom-0 flex overflow-hidden">
       {/* Left pane — conversation list */}
       <div className="w-80 shrink-0 hidden sm:flex flex-col">
         <ConversationList

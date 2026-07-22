@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { PageHeader } from '@/components/layout/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
+import { Button } from '@/components/dashboard/ui/button';
 
 const ENTITIES = [
   { id: 'cases', label: 'Cases' },

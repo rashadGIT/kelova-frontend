@@ -3,6 +3,7 @@ export interface IObituarySubmission {
   obituaryId: string;
   tenantId: string;
   outlet: string;
+  outletEmail: string | null;
   submittedAt: string | null;
   status: 'submitted' | 'published' | 'rejected' | 'cancelled';
   publishedUrl: string | null;

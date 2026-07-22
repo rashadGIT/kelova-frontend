@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/layout/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getWhiteboardColumns } from '@/lib/api/whiteboard';
 

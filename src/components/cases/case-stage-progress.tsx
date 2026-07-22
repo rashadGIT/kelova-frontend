@@ -2,7 +2,7 @@
 
 import { CaseStage } from '@/types';
 import { cn } from '@/lib/utils/cn';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 
 const STAGES: CaseStage[] = [
   CaseStage.FirstCall,
@@ -28,23 +28,34 @@ const STAGE_LABELS: Record<CaseStage, string> = {
 
 interface CaseStageProgressProps {
   stage: CaseStage;
-  onAdvance: (next: CaseStage) => void;
-  isPending: boolean;
+  onAdvance?: (next: CaseStage) => void;
+  isPending?: boolean;
+  /** Compact mode for narrow containers (e.g. the case-detail sidebar rail). */
+  compact?: boolean;
+  /** When true, render only the current stage's row (no connectors, no Advance button). */
+  collapsed?: boolean;
 }
 
-export function CaseStageProgress({ stage, onAdvance, isPending }: CaseStageProgressProps) {
+export function CaseStageProgress({ stage, onAdvance, isPending, compact, collapsed }: CaseStageProgressProps) {
   const currentIndex = STAGES.indexOf(stage);
   const nextStage = STAGES[currentIndex + 1] ?? null;
 
+  if (collapsed && currentIndex === -1) return null;
+
+  const visibleStages = collapsed ? STAGES.filter((_, i) => i === currentIndex) : STAGES;
+
   return (
     <div className="space-y-0">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-4">
-        Progress
-      </p>
-      {STAGES.map((s, i) => {
+      {!compact && (
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-4">
+          Progress
+        </p>
+      )}
+      {visibleStages.map((s) => {
+        const i = STAGES.indexOf(s);
         const isCompleted = i < currentIndex;
         const isCurrent = i === currentIndex;
-        const isLast = i === STAGES.length - 1;
+        const isLast = collapsed || i === STAGES.length - 1;
 
         return (
           <div key={s}>
@@ -88,8 +99,8 @@ export function CaseStageProgress({ stage, onAdvance, isPending }: CaseStageProg
                     )}
                   />
                 </div>
-                {/* Advance button appears between current and next step */}
-                {isCurrent && nextStage && (
+                {/* Advance button appears between current and next step (only when a handler is wired up) */}
+                {isCurrent && nextStage && onAdvance && (
                   <Button
                     size="sm"
                     variant="outline"

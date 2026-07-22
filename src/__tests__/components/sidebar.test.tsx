@@ -6,7 +6,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Sidebar, MobileSidebarTrigger } from '@/components/layout/sidebar';
+import { SidebarContent, SidebarTrigger } from '@/components/layout/sidebar';
 
 const mockUseCurrentUser = jest.fn(() => ({ canAccessSettings: true, isSuperAdmin: false }));
 jest.mock('@/hooks/use-current-user', () => ({
@@ -34,41 +34,40 @@ describe('Sidebar', () => {
   });
 
   it('renders the brand name', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.getByText('Kelova')).toBeInTheDocument();
   });
 
   it('renders all main nav links', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Cases')).toBeInTheDocument();
     expect(screen.getByText('Calendar')).toBeInTheDocument();
     expect(screen.getByText('Vendors')).toBeInTheDocument();
     expect(screen.getByText('Price List')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
   it('renders nav links as anchor elements', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     const links = screen.getAllByRole('link');
     expect(links.length).toBeGreaterThanOrEqual(6);
   });
 
   it('Dashboard link has href "/"', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
     expect(dashboardLink).toHaveAttribute('href', '/');
   });
 
   it('Cases link has href "/cases"', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     const casesLink = screen.getByRole('link', { name: /^cases$/i });
     expect(casesLink).toHaveAttribute('href', '/cases');
   });
 
   it('marks Dashboard link as active when pathname is "/"', () => {
     jest.mocked(usePathname).mockReturnValue('/');
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
 
     const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
     expect(dashboardLink.className).toMatch(/font-medium/);
@@ -76,7 +75,7 @@ describe('Sidebar', () => {
 
   it('marks Cases link as active when pathname starts with "/cases"', () => {
     jest.mocked(usePathname).mockReturnValue('/cases');
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
 
     const casesLink = screen.getByRole('link', { name: /^cases$/i });
     expect(casesLink.className).toMatch(/font-medium/);
@@ -84,26 +83,26 @@ describe('Sidebar', () => {
 
   it('does not mark Dashboard as active when pathname is "/cases"', () => {
     jest.mocked(usePathname).mockReturnValue('/cases');
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
 
     const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
     expect(dashboardLink.className).toMatch(/font-normal/);
   });
 });
 
-describe('MobileSidebarTrigger', () => {
+describe('SidebarTrigger', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the hamburger menu button', () => {
-    renderWithQuery(<MobileSidebarTrigger />);
+    renderWithQuery(<SidebarTrigger />);
     expect(screen.getByRole('button', { name: /open navigation menu/i })).toBeInTheDocument();
   });
 
   it('opens the mobile nav sheet when the button is clicked', async () => {
     const user = userEvent.setup();
-    renderWithQuery(<MobileSidebarTrigger />);
+    renderWithQuery(<SidebarTrigger />);
 
     await user.click(screen.getByRole('button', { name: /open navigation menu/i }));
 
@@ -120,13 +119,13 @@ describe('Sidebar — super_admin Mode A (admin-only nav)', () => {
   });
 
   it('shows Funeral Homes and All Users links', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.getByText('Funeral Homes')).toBeInTheDocument();
     expect(screen.getByText('All Users')).toBeInTheDocument();
   });
 
   it('does not show regular nav items like Dashboard', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 });
@@ -145,27 +144,27 @@ describe('Sidebar — super_admin Mode B (tenant view)', () => {
   });
 
   it('shows TenantViewBanner with tenant name', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.getByText('Heritage Memorial')).toBeInTheDocument();
     expect(screen.getByText('Exit tenant view')).toBeInTheDocument();
   });
 
   it('shows regular nav items in tenant view', () => {
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Cases')).toBeInTheDocument();
   });
 
   it('calls exitTenantView when Exit button is clicked', async () => {
     const user = userEvent.setup();
-    renderWithQuery(<Sidebar />);
+    renderWithQuery(<SidebarContent />);
     await user.click(screen.getByText('Exit tenant view'));
     expect(mockExit).toHaveBeenCalled();
   });
 
-  it('calls onClose when Exit is clicked inside MobileSidebarTrigger (sheet)', async () => {
+  it('calls onClose when Exit is clicked inside SidebarTrigger (sheet)', async () => {
     const user = userEvent.setup();
-    renderWithQuery(<MobileSidebarTrigger />);
+    renderWithQuery(<SidebarTrigger />);
 
     // Open the sheet
     await user.click(screen.getByRole('button', { name: /open navigation menu/i }));

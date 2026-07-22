@@ -3,6 +3,7 @@ export const DocumentType = {
   death_cert: 'death_cert',
   service_program: 'service_program',
   invoice: 'invoice',
+  photo: 'photo',
   other: 'other',
 } as const;
 export type DocumentType = typeof DocumentType[keyof typeof DocumentType];

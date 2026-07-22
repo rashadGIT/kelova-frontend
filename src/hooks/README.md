@@ -1,6 +1,6 @@
 # src/hooks
 
-Custom React hooks for the Vigil dashboard.
+Custom React hooks for the Kelova dashboard.
 
 ## `use-current-user.ts`
 

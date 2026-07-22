@@ -13,8 +13,8 @@ export interface MerchandiseItem {
   id: string;
   name: string;
   category: MerchandiseCategory;
-  retailPrice: number;
-  costPrice?: number;
+  priceRetail: number;
+  priceCost?: number;
   sku?: string;
   description?: string;
   inStock: boolean;
@@ -25,8 +25,8 @@ export interface MerchandiseItem {
 export interface CreateMerchandiseDto {
   name: string;
   category: MerchandiseCategory;
-  retailPrice: number;
-  costPrice?: number;
+  priceRetail: number;
+  priceCost?: number;
   sku?: string;
   description?: string;
 }
@@ -36,6 +36,10 @@ export interface CaseMerchandiseSelection {
   caseId: string;
   item: MerchandiseItem;
   quantity: number;
+  /** Price snapshotted when this item was added to the case — use this for
+   * totals, not item.priceRetail, which reflects today's catalog price and
+   * can drift after the fact. */
+  priceAtTime: number;
   notes?: string;
 }
 

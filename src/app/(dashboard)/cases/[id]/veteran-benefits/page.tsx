@@ -3,12 +3,14 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Shield, CheckCircle2, Circle } from 'lucide-react';
+import { Shield, Circle, Clock, CheckCircle2, Ban, Check } from 'lucide-react';
 import { CaseWorkspaceTabs } from '@/components/cases/case-workspace-tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/dashboard/ui/card';
+import { Button } from '@/components/dashboard/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils/cn';
+import { formatDate } from '@/lib/utils/format-date';
 import {
   initVeteranChecklist,
   getVeteranChecklist,
@@ -17,24 +19,162 @@ import {
 import { apiClient } from '@/lib/api/client';
 import type { IVeteranBenefitItem } from '@/types';
 
-const STATUS_COLORS: Record<IVeteranBenefitItem['status'], string> = {
-  pending: 'bg-slate-100 text-slate-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  waived: 'bg-amber-100 text-amber-700',
+type Status = IVeteranBenefitItem['status'];
+type Tone = 'default' | 'info' | 'success' | 'warning';
+
+const COLUMNS: { status: Status; title: string; icon: React.ReactNode; tone: Tone }[] = [
+  { status: 'pending', title: 'Pending', icon: <Circle className="h-4 w-4" />, tone: 'default' },
+  { status: 'in_progress', title: 'In Progress', icon: <Clock className="h-4 w-4" />, tone: 'info' },
+  { status: 'completed', title: 'Completed', icon: <CheckCircle2 className="h-4 w-4" />, tone: 'success' },
+  { status: 'waived', title: 'Waived', icon: <Ban className="h-4 w-4" />, tone: 'warning' },
+];
+
+const TONE_HEADER: Record<Tone, string> = {
+  default: 'bg-muted/20',
+  info: 'bg-blue-50 text-blue-700',
+  success: 'bg-green-50 text-green-700',
+  warning: 'bg-amber-50 text-amber-700',
 };
 
-const STATUS_LABELS: Record<IVeteranBenefitItem['status'], string> = {
-  pending: 'Pending',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  waived: 'Waived',
+const TONE_BORDER: Record<Tone, string> = {
+  default: 'border-l-transparent',
+  info: 'border-l-blue-500 bg-blue-50/30',
+  success: 'border-l-green-500 bg-green-50/30',
+  warning: 'border-l-amber-500 bg-amber-50/30',
 };
+
+function BenefitRow({
+  item,
+  caseId,
+}: {
+  item: IVeteranBenefitItem;
+  caseId: string;
+}) {
+  const queryClient = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
+  const [notesDraft, setNotesDraft] = useState(item.notes ?? '');
+
+  const tone = COLUMNS.find((c) => c.status === item.status)?.tone ?? 'default';
+  const isDone = item.status === 'completed';
+
+  const updateMutation = useMutation({
+    mutationFn: (dto: { status?: Status; notes?: string }) => updateVeteranBenefitItem(item.id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['veteran-benefits', caseId] });
+      toast.success('Item updated.');
+    },
+    onError: () => toast.error('Failed to update item.'),
+  });
+
+  return (
+    <div className={cn('px-4 py-3 border-l-2', TONE_BORDER[tone])}>
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          onClick={() => updateMutation.mutate({ status: isDone ? 'pending' : 'completed' })}
+          disabled={updateMutation.isPending}
+          aria-label={isDone ? 'Mark incomplete' : 'Mark complete'}
+          className={cn(
+            'mt-0.5 shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors',
+            isDone
+              ? 'bg-green-600 border-green-600 text-white'
+              : 'border-muted-foreground/40 hover:border-primary',
+          )}
+        >
+          {isDone && <Check className="h-3 w-3" strokeWidth={3} />}
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <p className={cn('text-sm', isDone && 'text-muted-foreground line-through')}>
+            {item.benefitName}
+          </p>
+
+          {isDone && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Completed {item.completedAt ? formatDate(item.completedAt) : formatDate(item.updatedAt)}
+              {item.completedBy && ` by ${item.completedBy}`}
+            </p>
+          )}
+
+          {item.notes && !expanded && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.notes}</p>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-xs text-muted-foreground hover:text-foreground mt-1 transition-colors"
+          >
+            {expanded ? 'Hide notes' : 'Add / edit notes'}
+          </button>
+
+          {expanded && (
+            <div className="mt-2 space-y-2">
+              <Textarea
+                rows={2}
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+                placeholder="Notes..."
+                className="text-sm"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => updateMutation.mutate({ notes: notesDraft })}
+                  disabled={updateMutation.isPending}
+                >
+                  Save Notes
+                </Button>
+                {item.status !== 'waived' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => updateMutation.mutate({ status: 'waived' })}
+                    disabled={updateMutation.isPending}
+                  >
+                    Mark Waived
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BenefitColumn({
+  title,
+  icon,
+  tone,
+  items,
+  caseId,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  tone: Tone;
+  items: IVeteranBenefitItem[];
+  caseId: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      <div className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium', TONE_HEADER[tone])}>
+        {icon}
+        <span>{title}</span>
+        <span className="text-xs font-normal opacity-70">({items.length})</span>
+      </div>
+      <div className="divide-y divide-border/60">
+        {items.map((item) => (
+          <BenefitRow key={item.id} item={item} caseId={caseId} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function VeteranBenefitsPanel({ caseId }: { caseId: string }) {
   const queryClient = useQueryClient();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
 
   const { data: caseData } = useQuery({
     queryKey: ['case', caseId],
@@ -45,7 +185,7 @@ function VeteranBenefitsPanel({ caseId }: { caseId: string }) {
     queryKey: ['veteran-benefits', caseId],
     queryFn: () => getVeteranChecklist(caseId),
     retry: false,
-    enabled: !!caseData?.isVeteran,
+    enabled: !!caseData?.veteranStatus,
   });
 
   const initMutation = useMutation({
@@ -57,24 +197,7 @@ function VeteranBenefitsPanel({ caseId }: { caseId: string }) {
     onError: () => toast.error('Failed to initialize checklist.'),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({
-      itemId,
-      status,
-      notes,
-    }: {
-      itemId: string;
-      status?: IVeteranBenefitItem['status'];
-      notes?: string;
-    }) => updateVeteranBenefitItem(itemId, { status, notes }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['veteran-benefits', caseId] });
-      toast.success('Item updated.');
-    },
-    onError: () => toast.error('Failed to update item.'),
-  });
-
-  if (!caseData?.isVeteran) {
+  if (!caseData?.veteranStatus) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
@@ -94,6 +217,7 @@ function VeteranBenefitsPanel({ caseId }: { caseId: string }) {
 
   const list = items ?? [];
   const completed = list.filter((i) => i.status === 'completed').length;
+  const percent = list.length ? Math.round((completed / list.length) * 100) : 0;
 
   if (list.length === 0) {
     return (
@@ -116,125 +240,31 @@ function VeteranBenefitsPanel({ caseId }: { caseId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Progress */}
-      <Card>
-        <CardContent className="pt-5 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium">VA Benefits Progress</p>
-            <p className="text-sm text-muted-foreground">
-              {completed} / {list.length} completed
-            </p>
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div
-              className="bg-primary rounded-full h-2 transition-all"
-              style={{ width: `${list.length ? (completed / list.length) * 100 : 0}%` }}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <div className="flex items-center justify-between mb-1.5 text-sm">
+          <span className="font-medium">{completed} of {list.length} benefits completed</span>
+          <span className="text-muted-foreground">{percent}%</span>
+        </div>
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
 
-      {/* Checklist */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Benefits Checklist</CardTitle>
-        </CardHeader>
-        <CardContent className="divide-y">
-          {list.map((item) => {
-            const isExpanded = expandedId === item.id;
-            const isDone = item.status === 'completed';
-            const notesDraft = notesMap[item.id] ?? item.notes ?? '';
-
-            return (
-              <div key={item.id} className="py-3">
-                <div className="flex items-start gap-3">
-                  <button
-                    onClick={() =>
-                      updateMutation.mutate({
-                        itemId: item.id,
-                        status: isDone ? 'pending' : 'completed',
-                      })
-                    }
-                    className="mt-0.5 shrink-0 text-muted-foreground hover:text-primary transition-colors"
-                    aria-label={isDone ? 'Mark incomplete' : 'Mark complete'}
-                  >
-                    {isDone ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Circle className="h-5 w-5" />
-                    )}
-                  </button>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p
-                        className={`text-sm ${isDone ? 'line-through text-muted-foreground' : ''}`}
-                      >
-                        {item.benefitName}
-                      </p>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[item.status]}`}
-                      >
-                        {STATUS_LABELS[item.status]}
-                      </span>
-                    </div>
-
-                    {item.notes && !isExpanded && (
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {item.notes}
-                      </p>
-                    )}
-
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                      className="text-xs text-muted-foreground hover:text-foreground mt-1 transition-colors"
-                    >
-                      {isExpanded ? 'Hide notes' : 'Add / edit notes'}
-                    </button>
-
-                    {isExpanded && (
-                      <div className="mt-2 space-y-2">
-                        <Textarea
-                          rows={2}
-                          value={notesDraft}
-                          onChange={(e) =>
-                            setNotesMap((prev) => ({ ...prev, [item.id]: e.target.value }))
-                          }
-                          placeholder="Notes..."
-                          className="text-sm"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              updateMutation.mutate({ itemId: item.id, notes: notesDraft })
-                            }
-                            disabled={updateMutation.isPending}
-                          >
-                            Save Notes
-                          </Button>
-                          {item.status !== 'waived' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                updateMutation.mutate({ itemId: item.id, status: 'waived' })
-                              }
-                              disabled={updateMutation.isPending}
-                            >
-                              Mark Waived
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+        {COLUMNS.map((col) => (
+          <BenefitColumn
+            key={col.status}
+            title={col.title}
+            icon={col.icon}
+            tone={col.tone}
+            items={list.filter((i) => i.status === col.status)}
+            caseId={caseId}
+          />
+        ))}
+      </div>
     </div>
   );
 }

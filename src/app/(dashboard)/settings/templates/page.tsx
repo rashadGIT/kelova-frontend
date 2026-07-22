@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/dashboard/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ChevronDown, ChevronUp, ChevronRight, Pencil, Plus, RotateCcw, Trash2, Check, X,
